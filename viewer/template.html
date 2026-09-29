@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>One industry, two routes · Eaton–Kortum code viewer</title>
+<style>
+:root{--paper:#f5f3ee;--ink:#172b3a;--muted:#506271;--line:#d3dbdd;--blue:#174bb4;--pale:#e9f0ff;--green:#176349;--amber:#ffe8ac;--red:#a32632;--mono:Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:var(--blue)}button,input,textarea{font:inherit}button,summary{cursor:pointer}button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--blue);outline-offset:4px}[hidden]{display:none!important}header{border-bottom:1px solid var(--line);position:sticky;top:0;background:#f5f3eef5;z-index:10}.nav{max-width:1200px;margin:auto;padding:16px 28px;display:flex;align-items:center;gap:28px;justify-content:space-between}.brand{font-size:13px;font-weight:800;letter-spacing:.12em}.nav nav{display:flex;gap:24px}.nav a{font-size:13px;text-decoration:none;color:var(--muted)}main{max-width:1200px;margin:auto;padding:52px 28px 80px}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:750;color:var(--blue)}h1{font-size:clamp(38px,5.5vw,66px);line-height:1.07;letter-spacing:-.045em;margin:18px 0 22px;font-weight:650}h2{font-size:30px;line-height:1.2;letter-spacing:-.025em;margin:12px 0 16px}h3{font-size:18px;margin:0 0 12px}.hero{display:grid;grid-template-columns:1.6fr 1fr;gap:55px;align-items:end;margin-bottom:44px}.intro{font-size:18px;max-width:680px;color:var(--muted)}.scope{border-left:3px solid var(--blue);padding:0 0 0 24px}.scope p{margin:5px 0;font-size:14px}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}.tag{border:1px solid var(--line);border-radius:30px;padding:4px 11px;font-size:12px}.section{border-top:1px solid var(--line);padding-top:32px;margin-top:48px}.section-heading{display:flex;align-items:start;justify-content:space-between;gap:30px}.section-heading p{max-width:480px;margin-top:12px;color:var(--muted)}.model-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:22px}.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px}.equation{font-family:var(--mono);font-size:13px;line-height:1.85;overflow-wrap:anywhere}.equation-block{border-bottom:1px solid #e4e9eb;padding:0 0 16px;margin-bottom:16px}.equation-block:last-child{border:0;margin:0;padding:0}.label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:750;color:var(--muted)}dl{margin:0}dt{font-weight:650;font-size:14px}dd{margin:2px 0 14px;color:var(--muted);font-size:14px}.dimensions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.dimension{padding:3px 9px;border-radius:5px;background:var(--pale);color:#244a87;font:12px var(--mono)}.dimension.exporter{background:#f3ead8;color:#72501f}.route-diagram{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}.flow{border:1px solid var(--line);border-radius:12px;padding:20px;background:#eaf0f4}.flow p{margin:8px 0 0;font-size:14px}.flow-path{font-weight:700;font-size:17px}.flow-compare{grid-column:1/-1;text-align:center;background:var(--ink);color:white;border-radius:8px;padding:14px;font-size:14px}.tabs{display:flex;gap:8px;margin:20px 0}.tabs button{padding:12px 20px;border:1px solid var(--line);border-radius:7px;color:var(--ink);background:transparent;font-weight:600}.tabs button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}.tree-toolbar{display:flex;justify-content:space-between;align-items:center;margin:12px 0 18px;gap:20px}.tree-toolbar p{font-size:13px;margin:0;color:var(--muted)}.text-button{border:0;background:none;color:var(--blue);padding:5px 0;font-size:13px;font-weight:650}.step{background:#fff;border:1px solid var(--line);border-radius:9px;margin:10px 0;overflow:hidden}.step summary{padding:17px 20px;font-size:15px;font-weight:650}.step[open]{border-color:#7899d5}.step[open] summary{background:var(--pale);color:#123d90;border-bottom:1px solid #cbd8f3}.step-body{padding:4px 20px 20px}.step-body>p{max-width:900px}.source-location{font:12px/1.6 var(--mono);color:var(--muted);overflow-wrap:anywhere}pre{font:12px/1.75 var(--mono);white-space:pre;overflow:auto;background:#f4f6f8;border:1px solid #e0e5e8;border-radius:7px;margin:16px 0 0;padding:15px 0;tab-size:4}.code-line{display:block;min-width:max-content;padding-right:18px}.code-line.highlighted{background:var(--amber);box-shadow:inset 3px 0 #c28312}.line-number{display:inline-block;min-width:4em;text-align:right;padding-right:1.2em;user-select:none;color:#71808a;font-size:11px}.certificate-status{padding:14px 18px;background:#e5f1e9;border:1px solid #aecfbb;border-radius:8px;font-weight:700;margin:18px 0}.pass{color:var(--green)}.fail{color:var(--red)}.certificate-status.fail{background:#fce9e9;border-color:#e6a4a4}.table-scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}caption{text-align:left;font-size:14px;font-weight:700;margin:10px 0}th,td{padding:13px 12px;text-align:left;border-bottom:1px solid var(--line)}thead th{background:#eaf0f4;color:var(--muted);font-size:12px}td{font-family:var(--mono)}.muted{color:var(--muted);font-size:13px}.raw-evidence summary{font-size:14px;cursor:pointer}.raw-evidence pre{max-height:450px;padding:20px}.quiz-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}.question{min-width:0;margin:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px 20px}.question legend{font-size:14px;font-weight:750;padding:0 8px}.question p{font-size:14px}.option{display:flex;align-items:baseline;gap:10px;font-size:13px;padding:10px 0;border-top:1px solid #edf0f2}.option input,.rubric input{flex-shrink:0;accent-color:var(--blue)}.option code{font-size:12px;overflow-wrap:anywhere}.option.correct{color:var(--green);background:#eaf6ed}.option.incorrect{color:var(--red);background:#fff1f1}textarea{width:100%;resize:vertical;padding:12px;border:1px solid #b3bfc7;border-radius:6px;background:#fbfcfd;font-size:14px;color:var(--ink)}.feedback{border-top:2px solid var(--blue);margin-top:18px}.verdict{font-weight:700}.rubric{display:flex;align-items:baseline;gap:8px;font-size:12px;margin:8px 0}.quiz-actions{display:flex;align-items:center;gap:24px;margin-top:24px;flex-wrap:wrap}.primary{background:var(--blue);color:white;border:0;border-radius:7px;padding:12px 20px;font-weight:650}.quiz-summary{font-size:14px;font-weight:650}.footer{border-top:1px solid var(--line);margin-top:56px;padding-top:22px;display:flex;justify-content:space-between;gap:20px;font-size:12px;color:var(--muted)}@media(max-width:780px){main{padding:30px 18px}.nav{padding:14px 18px}.nav nav{gap:12px}.hero,.model-grid,.route-diagram,.quiz-grid{grid-template-columns:1fr}.hero{gap:24px}.section-heading{display:block}.tabs{flex-wrap:wrap}.tabs button{padding:10px 14px}.section{margin-top:36px}.flow-compare{grid-column:1}.tree-toolbar{align-items:start}.footer{display:block}.panel{padding:20px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{header,.tabs,.tree-toolbar,.quiz-actions{display:none}.route[hidden],.feedback[hidden]{display:block!important}.hero,.model-grid,.quiz-grid{display:block}.panel,.question{margin-bottom:16px}main{padding:0}.step{break-inside:avoid}pre{white-space:pre-wrap}.code-line{min-width:0}.section{break-before:page}}
+</style>
+</head>
+<body>
+<header><div class="nav"><span class="brand">PDCU / MODEL LAB</span><nav aria-label="Page sections"><a href="#model">Model</a><a href="#code">Code</a><a href="#evidence">Evidence</a><a href="#quiz">Quiz</a></nav></div></header>
+<main>
+<section class="hero" aria-labelledby="page-title">
+<div><div class="eyebrow">Eaton–Kortum / one-industry baseline</div><h1 id="page-title">One industry.<br>Two routes.<br>One equilibrium.</h1><p class="intro">Follow the economics into the code. Solve a trade-cost counterfactual twice, inspect the evidence, then explain why the results agree.</p><div class="tags"><span class="tag">3 countries</span><span class="tag">1 factor · labor</span><span class="tag">Balanced trade</span><span class="tag">Works offline</span></div></div>
+<aside class="scope"><div class="eyebrow">The experiment</div><p>A <strong>10% bilateral trade-cost cut</strong> between countries 0 and 1. Technology and labor stay fixed.</p><p>Compute changes through two full equilibria and independently through exact-hat algebra.</p><p><strong>Acceptance:</strong> all three solves converge; every absolute and relative comparison error is below 10⁻⁹.</p></aside>
+</section>
+<section id="model" class="section">
+<div class="section-heading"><div><span class="eyebrow">01 / Plan</span><h2>What is being solved?</h2></div><p>Relative wages clear labor-income markets. Trade shares and prices follow from delivered costs.</p></div>
+<div class="model-grid"><div class="panel"><div class="dimensions"><span class="dimension">n · importer / row</span><span class="dimension exporter">i · exporter / column</span></div>
+<div class="equation-block"><span class="label">Trade shares</span><p class="equation">pi[n,i] = T[i] (w[i] d[n,i])^(−theta)<br> / sum_k T[k] (w[k] d[n,k])^(−theta)</p></div>
+<div class="equation-block"><span class="label">Price index</span><p class="equation">P[n] = gamma [sum_i T[i] (w[i] d[n,i])^(−theta)]^(−1/theta)</p></div>
+<div class="equation-block"><span class="label">Market clearing</span><p class="equation">w[i] L[i] = sum_n pi[n,i] w[n] L[n]</p></div></div>
+<div class="panel"><dl><dt>Primitives → full solution</dt><dd>Technology T[i], labor L[i], iceberg costs d[n,i], elasticity theta, and fixed price multiplier gamma = 1.</dd><dt>Baseline statistics + shock → exact hats</dt><dd>Expenditure shares pi0[n,i], incomes w0[i]L[i], theta, and trade-cost ratios d_hat[n,i].</dd><dt>Unknowns & numeraire</dt><dd>N−1 log wages (or log wage changes). Country 0 has w[0] = 1 in both levels equilibria and w_hat[0] = 1 in the hat route.</dd><dt>Imposed by construction</dt><dd>Importer share rows sum to one; expenditure equals labor income; the numeraire is exact.</dd><dt>Checked after solving</dt><dd>All-country normalized market-clearing residual norm &lt; 10⁻¹¹, finite outputs, and successful optimizer termination.</dd></dl><p class="muted">One industry and one factor. No intermediates, tariffs, transfers, deficits, estimation, or performance optimization.</p></div></div>
+<div class="route-diagram" aria-label="Two verification routes"><div class="flow"><span class="label">Levels route</span><div class="flow-path">Primitives → E0 &amp; E1 → E1 / E0</div><p>Two solves, each starting from unit wages. The second uses shocked trade costs.</p></div><div class="flow"><span class="label">Exact-hat route</span><div class="flow-path">E0 + trade-cost hats → equilibrium hats</div><p>An independent solve from unit wage hats, using baseline shares and incomes.</p></div><div class="flow-compare">Same shock + same closure + same numeraire → compare wage, price, share, and real-wage ratios</div></div>
+</section>
+<section id="code" class="section">
+<div class="section-heading"><div><span class="eyebrow">02 / Do</span><h2>Read the algorithm.</h2></div><p>Choose a route, then open a step. Amber lines map the economic operation to its actual production code.</p></div>
+<div class="tabs" role="tablist" aria-label="Solution route"><button type="button" role="tab" id="tab-levels" aria-controls="route-levels" aria-selected="true" tabindex="0" data-route="levels">Full solution</button><button type="button" role="tab" id="tab-hats" aria-controls="route-hats" aria-selected="false" tabindex="-1" data-route="hats">Exact hat</button><button type="button" role="tab" id="tab-check" aria-controls="route-check" aria-selected="false" tabindex="-1" data-route="check">Equivalence test</button></div>
+<div class="tree-toolbar"><p><span class="dimension">n · importer</span> <span class="dimension exporter">i · exporter</span> · literal source excerpts with line numbers</p><button class="text-button" type="button" id="expand-route">Expand all steps</button></div>
+@@STEPS@@
+<p class="muted">The annotated companion reorders verbatim production excerpts for reading; it is not a standalone executable module. Source hashes and excerpt locations are included in the manifest.</p>
+</section>
+<section id="evidence" class="section">
+<div class="section-heading"><div><span class="eyebrow">03 / Check</span><h2>Evidence, not a claim.</h2></div><p>This certificate comes from an actual Python run. Both error bounds must pass separately, alongside convergence.</p></div>
+@@CERTIFICATE@@
+<p class="muted">Relative error = |hat-route ratio − levels-route ratio| / |levels-route ratio|. Trade-share comparisons cover all nine bilateral ratios. This page displays saved evidence; it does not run Python in the browser. Rebuild to test a source change.</p>
+</section>
+<section id="quiz" class="section">
+<div class="section-heading"><div><span class="eyebrow">04 / Understand</span><h2>Can you explain it?</h2></div><p>Close the code tree and answer in your own words. Five questions have objective answers; three use self-assessment rubrics.</p></div>
+<p class="muted">Answers stay in this page session. Nothing is sent or stored. Reloading or resetting clears them. Software verification does not certify human understanding.</p>
+<form id="quiz-form" autocomplete="off"><div class="quiz-grid">@@QUIZ@@</div><div class="quiz-actions"><button type="submit" class="primary">Check answers &amp; show explanations</button><button type="reset" class="text-button">Reset quiz</button></div><p class="quiz-summary" id="quiz-summary" role="status" aria-live="polite"></p></form>
+</section>
+<footer class="footer"><span>PDCU · Plan → Do → Check → Understand</span><span>Numerical evidence generated · human review &amp; learner understanding pending</span></footer>
+</main>
+<script id="quiz-data" type="application/json">@@QUIZ_DATA@@</script>
+<script>
+"use strict";
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+let activeRoute = 'levels';
+function syncExpandLabel() {
+  const steps = [...document.querySelectorAll('#route-' + activeRoute + ' details')];
+  document.getElementById('expand-route').textContent = steps.every(step => step.open) ? 'Collapse all steps' : 'Expand all steps';
+}
+function selectRoute(route) {
+  activeRoute = route;
+  for (const tab of tabs) {
+    const selected = tab.dataset.route === route;
+    tab.setAttribute('aria-selected', String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    document.getElementById('route-' + tab.dataset.route).hidden = !selected;
+  }
+  syncExpandLabel();
+}
+tabs.forEach((tab, index) => {
+  tab.addEventListener('click', () => selectRoute(tab.dataset.route));
+  tab.addEventListener('keydown', event => {
+    let next;
+    if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = tabs.length - 1;
+    if (next !== undefined) { event.preventDefault(); tabs[next].focus(); selectRoute(tabs[next].dataset.route); }
+  });
+});
+document.querySelectorAll('.route').forEach(route => route.setAttribute('role', 'tabpanel'));
+document.querySelectorAll('.step').forEach(step => step.addEventListener('toggle', syncExpandLabel));
+document.getElementById('expand-route').addEventListener('click', () => {
+  const steps = [...document.querySelectorAll('#route-' + activeRoute + ' details')];
+  const open = !steps.every(step => step.open);
+  steps.forEach(step => { step.open = open; });
+  syncExpandLabel();
+});
+document.querySelectorAll('[data-step]').forEach(button => button.addEventListener('click', () => {
+  const step = document.getElementById(button.dataset.step);
+  selectRoute(step.closest('.route').id.replace('route-', ''));
+  step.open = true;
+  step.querySelector('summary').focus();
+  step.scrollIntoView({block:'center'});
+}));
+const quiz = JSON.parse(document.getElementById('quiz-data').textContent);
+const form = document.getElementById('quiz-form');
+function clearFeedback() {
+  document.querySelectorAll('.feedback').forEach(element => { element.hidden = true; });
+  document.querySelectorAll('.option').forEach(element => element.classList.remove('correct', 'incorrect'));
+  document.getElementById('quiz-summary').textContent = '';
+}
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  clearFeedback();
+  let correct = 0, answered = 0, written = 0;
+  for (const question of quiz) {
+    const feedback = document.getElementById('feedback-' + question.id);
+    const verdict = feedback.querySelector('.verdict');
+    feedback.hidden = false;
+    if (question.kind === 'written') {
+      const hasAnswer = document.getElementById('answer-' + question.id).value.trim().length > 0;
+      if (hasAnswer) written++;
+      verdict.textContent = hasAnswer ? 'Self-assess your explanation against the rubric.' : 'No written answer yet. Try your explanation, then use the rubric.';
+    } else {
+      const selected = form.querySelector('input[name="' + question.id + '"]:checked');
+      const isCorrect = selected !== null && Number(selected.value) === question.answer;
+      if (selected) answered++;
+      if (isCorrect) correct++;
+      verdict.textContent = selected ? (isCorrect ? 'Correct.' : 'Revisit this idea.') : 'No answer selected.';
+      form.querySelector('input[name="' + question.id + '"][value="' + question.answer + '"]').closest('label').classList.add('correct');
+      if (selected && !isCorrect) selected.closest('label').classList.add('incorrect');
+    }
+  }
+  document.getElementById('quiz-summary').textContent = correct + ' / 5 objective answers correct (' + answered + ' answered). ' + written + ' / 3 written responses provided; assess these yourself with the rubrics.';
+});
+form.addEventListener('reset', clearFeedback);
+// Browser form restoration should not turn this into persistent answer storage.
+window.addEventListener('pageshow', () => { form.reset(); clearFeedback(); });
+</script>
+</body>
+</html>

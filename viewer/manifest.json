@@ -1,0 +1,152 @@
+{
+  "builder_inputs": {
+    "pyproject.toml": "c1417c6a9603f36948ad892f2651c661addb4d0b61026251e3499d6b35b55565",
+    "requirements-repro.txt": "f81a3ef560449927ea3ba42d5e2d8bc1ce91825902342454f836190b37f7db17",
+    "scripts/build_model_viewer.py": "e98e55e4c0a76ffe9ca874c838c33addb232f1e44badee8f557933a6600d8c04",
+    "viewer/quiz.json": "0a82e5919dad2f6cd759d2fd1ae40a5ccf998149a873a5c6e9a25f923725e306",
+    "viewer/steps.json": "bf5e8010b8d0b81a18f3ff4a678b8e1559e86409a9649912a279069c05ce19dc",
+    "viewer/template.html": "982e7213297e1584aeb56641d667404f6eba52fac7f8a6c8782cb3c0b60357f4"
+  },
+  "generated_files": {
+    "viewer/model_annotated.py": "da6cd1d0687b53886ea68b9935e69b607faaecddc473c9016e89c5a8bb1c5026",
+    "viewer/model_viewer.html": "4256fbbeb371b1dc0cb249f68269cdf9cee84c413f76ebae4d9bf3218474c639",
+    "viewer/verification.json": "31ce3b2813e3f7cc6a7e5995ec0eb67ecfa1e55204bf4b50b490279d34453420"
+  },
+  "manifest_note": "The manifest does not hash itself. All paths are repository-relative.",
+  "production_sources": {
+    "src/ek_model/__init__.py": "585efe269ea4a4967b4e74c3913de7225b087165bbcd91a2885ddaca13df2be7",
+    "src/ek_model/exact_hat.py": "dd2bc8e9aec8499de3dcbe659697d8eb1fd95ac031779091e2d9e8da4fc41f7e",
+    "src/ek_model/full_solution.py": "9e10011e8b658589e3656f8a71b3e0bc69df46bf9bda705f9da8f643159d95f3",
+    "src/ek_model/model.py": "5fa73a4f712593fe36a228f6abfcd5d35c7b25c69d74e4ab762d7a8af978a8b1",
+    "src/ek_model/verification.py": "37491350b5eb321aedfec6f6985d390f80035d4b8318a2a62e0bb63d25f8796a"
+  },
+  "schema_version": 1,
+  "source_excerpts": [
+    {
+      "end_line": 52,
+      "id": "levels-primitives",
+      "path": "src/ek_model/model.py",
+      "start_line": 25,
+      "symbol": "Primitives"
+    },
+    {
+      "end_line": 22,
+      "id": "levels-costs",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 13,
+      "symbol": "levels_objects"
+    },
+    {
+      "end_line": 22,
+      "id": "levels-shares",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 13,
+      "symbol": "levels_objects"
+    },
+    {
+      "end_line": 22,
+      "id": "levels-prices",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 13,
+      "symbol": "levels_objects"
+    },
+    {
+      "end_line": 96,
+      "id": "levels-markets",
+      "path": "src/ek_model/model.py",
+      "start_line": 93,
+      "symbol": "market_clearing"
+    },
+    {
+      "end_line": 46,
+      "id": "levels-solver",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 31,
+      "symbol": "solve_levels"
+    },
+    {
+      "end_line": 35,
+      "id": "hats-inputs",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 17,
+      "symbol": "validate_hat_inputs"
+    },
+    {
+      "end_line": 48,
+      "id": "hats-shares",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 38,
+      "symbol": "hat_objects"
+    },
+    {
+      "end_line": 48,
+      "id": "hats-prices",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 38,
+      "symbol": "hat_objects"
+    },
+    {
+      "end_line": 54,
+      "id": "hats-markets",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 51,
+      "symbol": "hat_residual"
+    },
+    {
+      "end_line": 73,
+      "id": "hats-solver",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 57,
+      "symbol": "solve_exact_hat"
+    },
+    {
+      "end_line": 110,
+      "id": "hats-diagnostics",
+      "path": "src/ek_model/model.py",
+      "start_line": 99,
+      "symbol": "make_diagnostics"
+    },
+    {
+      "end_line": 24,
+      "id": "check-fixture",
+      "path": "src/ek_model/verification.py",
+      "start_line": 16,
+      "symbol": "fixture"
+    },
+    {
+      "end_line": 109,
+      "id": "check-levels",
+      "path": "src/ek_model/verification.py",
+      "start_line": 82,
+      "symbol": "run_verification"
+    },
+    {
+      "end_line": 109,
+      "id": "check-hats",
+      "path": "src/ek_model/verification.py",
+      "start_line": 82,
+      "symbol": "run_verification"
+    },
+    {
+      "end_line": 79,
+      "id": "check-ratios",
+      "path": "src/ek_model/verification.py",
+      "start_line": 64,
+      "symbol": "compare_equilibria"
+    },
+    {
+      "end_line": 49,
+      "id": "check-errors",
+      "path": "src/ek_model/verification.py",
+      "start_line": 27,
+      "symbol": "compare_changes"
+    },
+    {
+      "end_line": 109,
+      "id": "check-certificate",
+      "path": "src/ek_model/verification.py",
+      "start_line": 82,
+      "symbol": "run_verification"
+    }
+  ]
+}

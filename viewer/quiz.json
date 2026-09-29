@@ -1,0 +1,56 @@
+[
+  {
+    "id": "indexing", "kind": "choice", "title": "01 · Read the indices",
+    "prompt": "In pi[n, i], what does each index identify?",
+    "options": ["n is the importer; i is the exporter.", "n is the exporter; i is the importer.", "n is a country; i is an industry."],
+    "answer": 0,
+    "explanation": "Each row is one importer's allocation of expenditure across exporters. Rows sum to one; there is no industry axis in this baseline."
+  },
+  {
+    "id": "denominator", "kind": "code", "title": "02 · Match code to an equation",
+    "prompt": "Select the block that computes the denominator of the trade-share equation in log space.",
+    "options": ["log_denominator = logsumexp(log_weights, axis=1)", "sales = shares.T @ incomes", "incomes = wages * primitives.L"],
+    "answer": 0,
+    "explanation": "axis=1 sums over exporters within each importer row. Exponentiating log_denominator gives the trade-share denominator.",
+    "step": "levels-shares"
+  },
+  {
+    "id": "closure", "kind": "written", "title": "03 · Close the economy",
+    "prompt": "Which equation determines relative wages, and why does the optimizer use only N−1 equations?",
+    "explanation": "Exporter sales equal labor income: sum_n pi[n,i] w[n]L[n] = w[i]L[i]. World spending equals world income, making one market equation redundant. Fixing w[0]=1 removes nominal scale indeterminacy; all N residuals are still checked.",
+    "rubric": ["Equates exporter sales and labor income.", "Explains redundancy and the wage numeraire.", "Notes that every country's residual is checked."]
+  },
+  {
+    "id": "numeraire", "kind": "choice", "title": "04 · Change the numeraire",
+    "prompt": "If all wages are rescaled by a common positive factor, what happens?",
+    "options": ["Prices scale by the same factor; trade shares and real wages are unchanged.", "Prices stay fixed and real wages scale.", "Trade shares scale by the same factor."],
+    "answer": 0,
+    "explanation": "The price index is homogeneous of degree one in wages. Common nominal scaling cancels from expenditure shares and w/P. Both verification routes must use the same wage normalization."
+  },
+  {
+    "id": "inputs", "kind": "choice", "title": "05 · Supply exact hats",
+    "prompt": "Which information enters the exact-hat equilibrium equations for this trade-cost shock?",
+    "options": ["Baseline shares and incomes, theta, and trade-cost hats.", "Only the new trade costs and gamma.", "Counterfactual wages from the levels solver."],
+    "answer": 0,
+    "explanation": "Baseline shares summarize technology and delivered-cost competitiveness. Baseline incomes supply spending weights. The equations do not need the counterfactual levels solution. The API also retains primitives to validate shocked iceberg costs."
+  },
+  {
+    "id": "routes", "kind": "written", "title": "06 · Explain two routes",
+    "prompt": "Why should E1/E0 equal the exact-hat result, and what would agreement alone fail to prove?",
+    "explanation": "Divide the counterfactual equations by their baseline counterparts with technology, labor, theta, and gamma fixed. Baseline shares then replace levels competitiveness terms. Identical closure, shock, and numeraire give the same equilibrium changes. Agreement alone does not prove convergence or rule out a shared implementation error.",
+    "rubric": ["Describes dividing counterfactual by baseline equations.", "Identifies common closure, shock, and numeraire.", "Distinguishes equivalence from convergence and independent equation checks."]
+  },
+  {
+    "id": "diagnosis", "kind": "choice", "title": "07 · Diagnose a false pass",
+    "prompt": "All comparison errors are 1e−13, but the hat solver reports success=false and a full residual of 2e−4. What is the verdict?",
+    "options": ["Fail: the hat route has not converged, despite matching outputs.", "Pass: comparison errors are below 1e−9.", "Pass after dropping country 0's residual."],
+    "answer": 0,
+    "explanation": "Convergence and equivalence are separate requirements. The solver must report success and the full residual norm must be below 1e−11; both error measures must also be below 1e−9."
+  },
+  {
+    "id": "interpretation", "kind": "written", "title": "08 · Interpret the shock",
+    "prompt": "Trace the 10% bilateral trade-cost cut through shares, wages, prices, and real income. Why can country 2 also change?",
+    "explanation": "Lower bilateral delivered costs initially increase the affected exporters' competitiveness. Expenditure shifts change sales and relative wages; those wage changes feed back into every importer's prices and shares. Welfare is the wage change divided by the price change. Country 2 participates in the same market-clearing system, so its outcomes can change even though its trade costs do not. Direction and magnitude should be read from the equilibrium, not assumed for every country.",
+    "rubric": ["Connects costs to expenditure shares and exporter sales.", "Explains wage feedback and effects on the third country.", "Defines the real-income change as wage hat divided by price hat."]
+  }
+]
