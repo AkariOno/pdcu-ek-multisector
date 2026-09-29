@@ -2,7 +2,7 @@
 
 This is the Single Source of Truth for the implemented one-industry model. Numerical checks and generated evidence are complete; human acceptance and learner understanding remain pending in the linked review. The implementation branch does not itself establish that `main` has been reviewed or merged.
 
-Plan: [fork issue #1](https://github.com/AkariOno/pdcu-ek-multisector/issues/1), with provenance in [upstream issue #1](https://github.com/yutawatabe/pdcu-ek-multisector/issues/1). The repository also retains [the cycle plan](plan.md). The subsequent multi-industry exercise generalizes these production modules in place; it must not introduce parallel historical implementations.
+Plan: [fork issue #1](https://github.com/AkariOno/pdcu-ek-multisector/issues/1), with provenance in [upstream issue #1](https://github.com/yutawatabe/pdcu-ek-multisector/issues/1). Implementation and review: [draft PR #2](https://github.com/AkariOno/pdcu-ek-multisector/pull/2). The repository also retains [the cycle plan](plan.md) and [validation record](validation.md). The subsequent multi-industry exercise generalizes these production modules in place; it must not introduce parallel historical implementations.
 
 ## Economic contract
 
