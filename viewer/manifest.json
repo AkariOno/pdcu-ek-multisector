@@ -1,0 +1,167 @@
+{
+  "builder_inputs": {
+    "pyproject.toml": "00690655756578ebc1421ed6180c9add7d153c9656685251d961ef43deaf87f7",
+    "requirements-repro.txt": "bf5c7b47aa5de2432e3d99d7572e99fb8d7ecaea66ccc75f1cb134fcd0badb15",
+    "scripts/build_model_viewer.py": "ac28c5b4fc859c77d35c3202e78f39e12b96b355947e0b38e0ed630276851294",
+    "viewer/quiz.json": "6afd5a588080466ba982fb50595236923c20ce63004c150e3a78d3714e639bc7",
+    "viewer/steps.json": "3d7a4d10ee47d788e4ff44e363289e5fb0ced84a56dfdf7881930b5f210040fc",
+    "viewer/template.html": "7e3016cadf98e43d52c98ca600907cb98c14b7d22f89c898b5e95dc82bb83feb"
+  },
+  "generated_files": {
+    "viewer/model_annotated.py": "22efea83e3ae9039f0e00b74187cb39fdbde23c5e7dfcacab11a1d5894c52067",
+    "viewer/model_viewer.html": "48df6f4c83a0f93d0b484ae791948ce476f4f35b778d6836ee2a0dad07a13251",
+    "viewer/verification.json": "dfb0b8698d9bab9cb723b4c96afee42940bc9c0a4728e98427dedc75d5b5ac58"
+  },
+  "manifest_note": "The manifest does not hash itself. All paths are repository-relative.",
+  "production_sources": {
+    "src/ek_model/__init__.py": "f53dbd23e638d5cb0b4940b0cf608f26df158cb0a8eeb6c85b67069b0f8a1b75",
+    "src/ek_model/exact_hat.py": "2a7b95bcdbae6cb627d6cba7615868ae4aaa73e1c4051779c471910a4c31a71a",
+    "src/ek_model/full_solution.py": "06f6eab70a587afde32e894ca036cbe43b61512138954879950635b441879be7",
+    "src/ek_model/iteration.py": "a2a776be40ab1fa99bd22dc19c10d72962bff0968e977bb9911d45805da2eff8",
+    "src/ek_model/model.py": "776da54dd710aef7c911fc700c27fd99ecaadfc018f7b1156322ec1cc1dcdcdc",
+    "src/ek_model/verification.py": "8949f7c92cd7d7929a2304167c3a543a94146cac613f59bdaa584f46aa8db084"
+  },
+  "schema_version": 1,
+  "source_excerpts": [
+    {
+      "end_line": 53,
+      "id": "levels-primitives",
+      "path": "src/ek_model/model.py",
+      "start_line": 26,
+      "symbol": "Primitives"
+    },
+    {
+      "end_line": 20,
+      "id": "levels-costs",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 11,
+      "symbol": "levels_objects"
+    },
+    {
+      "end_line": 20,
+      "id": "levels-shares",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 11,
+      "symbol": "levels_objects"
+    },
+    {
+      "end_line": 20,
+      "id": "levels-prices",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 11,
+      "symbol": "levels_objects"
+    },
+    {
+      "end_line": 111,
+      "id": "levels-markets",
+      "path": "src/ek_model/model.py",
+      "start_line": 108,
+      "symbol": "market_clearing"
+    },
+    {
+      "end_line": 35,
+      "id": "levels-solver",
+      "path": "src/ek_model/full_solution.py",
+      "start_line": 23,
+      "symbol": "solve_levels"
+    },
+    {
+      "end_line": 86,
+      "id": "levels-iteration",
+      "path": "src/ek_model/iteration.py",
+      "start_line": 38,
+      "symbol": "iterate_wages"
+    },
+    {
+      "end_line": 35,
+      "id": "levels-update",
+      "path": "src/ek_model/iteration.py",
+      "start_line": 31,
+      "symbol": "damped_wage_step"
+    },
+    {
+      "end_line": 34,
+      "id": "hats-inputs",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 16,
+      "symbol": "validate_hat_inputs"
+    },
+    {
+      "end_line": 47,
+      "id": "hats-shares",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 37,
+      "symbol": "hat_objects"
+    },
+    {
+      "end_line": 47,
+      "id": "hats-prices",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 37,
+      "symbol": "hat_objects"
+    },
+    {
+      "end_line": 47,
+      "id": "hats-markets",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 37,
+      "symbol": "hat_objects"
+    },
+    {
+      "end_line": 63,
+      "id": "hats-solver",
+      "path": "src/ek_model/exact_hat.py",
+      "start_line": 50,
+      "symbol": "solve_exact_hat"
+    },
+    {
+      "end_line": 86,
+      "id": "hats-diagnostics",
+      "path": "src/ek_model/iteration.py",
+      "start_line": 38,
+      "symbol": "iterate_wages"
+    },
+    {
+      "end_line": 23,
+      "id": "check-fixture",
+      "path": "src/ek_model/verification.py",
+      "start_line": 15,
+      "symbol": "fixture"
+    },
+    {
+      "end_line": 119,
+      "id": "check-levels",
+      "path": "src/ek_model/verification.py",
+      "start_line": 92,
+      "symbol": "run_verification"
+    },
+    {
+      "end_line": 119,
+      "id": "check-hats",
+      "path": "src/ek_model/verification.py",
+      "start_line": 92,
+      "symbol": "run_verification"
+    },
+    {
+      "end_line": 89,
+      "id": "check-ratios",
+      "path": "src/ek_model/verification.py",
+      "start_line": 74,
+      "symbol": "compare_equilibria"
+    },
+    {
+      "end_line": 48,
+      "id": "check-errors",
+      "path": "src/ek_model/verification.py",
+      "start_line": 26,
+      "symbol": "compare_changes"
+    },
+    {
+      "end_line": 119,
+      "id": "check-certificate",
+      "path": "src/ek_model/verification.py",
+      "start_line": 92,
+      "symbol": "run_verification"
+    }
+  ]
+}

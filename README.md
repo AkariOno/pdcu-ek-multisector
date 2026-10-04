@@ -4,7 +4,24 @@
 
 This repository is an educational tutorial on how to run a PDCU cycle with a coding agent. The Eaton-Kortum model is the worked example because it provides a realistic research task with a clear implementation target, a decisive verification test, and substantive code to understand. The objective is to learn the workflow, not international trade theory itself.
 
-The learner does **not** begin from an empty project. A complete, tested one-industry Eaton-Kortum model is already on `main`, together with the record of the PDCU cycle that produced it.
+The intended tutorial begins from a tested one-industry Eaton-Kortum model. This implementation provides that baseline, its numerical verification, and its Understand artifacts. Human review and learner understanding remain pending; an implementation branch is not evidence that the cycle has already been accepted or merged into `main`.
+
+Start with the [current one-industry specification](docs/latest.md), [baseline plan and issue](https://github.com/AkariOno/pdcu-ek-multisector/issues/1), and [offline code viewer](viewer/model_viewer.html). Download or open the HTML locally to use the interactions; GitHub's source view does not execute it.
+
+The current solver follows [the damped wage iteration plan, issue #3](https://github.com/AkariOno/pdcu-ek-multisector/issues/3). Both levels and exact hats use a transparent NumPy-only loop: multiply each wage by `(sales/income)**0.2`, normalize country 0, and recompute until every market residual meets the target. The viewer exposes the actual loop and each solve's residual and wage history.
+
+### Run the baseline
+
+With Python 3.12 in an activated virtual environment:
+
+```sh
+python -m pip install -r requirements-repro.txt
+python -m pip install --no-deps -e .
+python -m pytest -q
+python scripts/build_model_viewer.py --check
+```
+
+Regenerate the viewer with `python scripts/build_model_viewer.py`. Its [certificate](viewer/verification.json) records the actual convergence diagnostics and comparison errors; the [manifest](viewer/manifest.json) binds generated artifacts to their production source. See [reproduction details](docs/latest.md#reproduction-and-provenance).
 
 The learner's task is one coherent extension:
 
@@ -12,9 +29,9 @@ The learner's task is one coherent extension:
 
 The coding agent is expected to be capable of implementing the entire extension in one cycle. The educational emphasis is therefore not on artificially decomposing the coding task. It is on specifying the economics clearly, embedding one decisive verification test in advance, and turning the completed code into something the learner can explain.
 
-## What Is Already Complete
+## What the Baseline Provides
 
-The starting repository contains a one-industry model whose PDCU cycle has already been completed.
+The one-industry implementation supplies the automated parts of the starting cycle. Human acceptance and a learner's explanation and quiz completion must still be recorded in the review.
 
 | PDCU phase | Existing one-industry artifact |
 |---|---|
@@ -22,12 +39,12 @@ The starting repository contains a one-industry model whose PDCU cycle has alrea
 | Do | A full-solution solver and a separate exact-hat solver |
 | Check | A test comparing changes between two full-solution equilibria with the exact-hat result |
 | Understand | An interactive code viewer and a code-understanding quiz |
-| Latest State | The reviewed one-industry implementation on `main` |
-| Lab Journal | The Issue and Pull Request that record the plan, implementation, check, and distilled insights |
+| Latest State | `docs/latest.md` describes the implemented one-industry baseline and its pending human acceptance |
+| Lab Journal | The baseline Issue and linked implementation Pull Request record the plan, checks, and review |
 
-The learner can inspect this completed cycle before starting the extension. It serves as both a working baseline and an example of what a finished PDCU cycle looks like.
+The learner can inspect the baseline before starting the extension. The PDCU cycle becomes complete after the required human review and understanding exercise, not merely because automated tests pass.
 
-This is a starting state, not a second implementation that remains beside the final model. During the tutorial, the existing model is generalized in place. After the Pull Request is merged, `main` contains the multi-industry model and `docs/latest.md` describes only that current model. The former one-industry state remains available through the earlier commit, Issue, and Pull Request history.
+The following sections specify the later multi-industry exercise; the production code currently implements one industry only. During that later cycle, the existing model is generalized in place. After its Pull Request is accepted and merged, `main` contains the multi-industry model and `docs/latest.md` describes only that current model. The former one-industry state remains available through commit, Issue, and Pull Request history.
 
 ## Learning Objectives
 
@@ -262,7 +279,7 @@ The filenames describe roles rather than historical versions. The earlier one-in
 
 | Research object | GitHub object |
 |---|---|
-| Completed one-industry PDCU cycle | The starting commit plus its existing Issue and merged Pull Request |
+| One-industry baseline cycle | The baseline Issue and implementation Pull Request; acceptance and merge are recorded when completed |
 | Multi-industry Plan | One new Issue |
 | Multi-industry Do | One feature branch or isolated worktree |
 | Multi-industry Check | The Pull Request and its exact-hat equivalence test |
@@ -304,4 +321,4 @@ These are possible later PDCU exercises, but they are not prerequisites for trea
 
 ## Status
 
-This README defines the intended teaching flow. Before implementation, the remaining choices are the programming language, the precise multi-industry shock, the fixture dimensions, the normalization, the numerical tolerance, and whether quiz answers are stored locally or only used during the viewer session.
+The one-industry baseline uses Python and NumPy, three countries, and a symmetric proportional 10% bilateral trade-cost cut between countries 0 and 1. Both routes use fixed damped multiplicative wage iteration, default damping `0.2`, at most 10,000 updates, and a strict full residual target of `1e-13`. Country 0 is normalized after every update. Verification requires all three solves to converge, full residual norms below `1e-11`, and separate strict absolute and relative comparison errors below `1e-9`. Quiz answers are session-only. These choices and reproduction instructions are fixed in `docs/latest.md`. Human review and learner understanding are pending. The later multi-industry cycle must specify its industry dimensions, demand shares, and shock before implementation.

@@ -1,0 +1,268 @@
+[
+  {
+    "id": "levels-primitives",
+    "route": "levels",
+    "title": "01 · Primitives & dimensions",
+    "file": "model.py",
+    "symbol": "Primitives",
+    "highlight": [
+      "class Primitives",
+      "def __post_init__"
+    ],
+    "equation": "T[i], L[i], d[n,i], theta, gamma",
+    "explanation": "Positive technology and labor; unit domestic iceberg costs. Rows always denote importers n and columns exporters i."
+  },
+  {
+    "id": "levels-costs",
+    "route": "levels",
+    "title": "02 · Delivered unit costs",
+    "file": "full_solution.py",
+    "symbol": "levels_objects",
+    "highlight": [
+      "log_costs ="
+    ],
+    "equation": "c[n,i] = w[i] d[n,i]",
+    "explanation": "One wage per exporter scales its production cost, then bilateral iceberg costs determine the delivered cost."
+  },
+  {
+    "id": "levels-shares",
+    "route": "levels",
+    "title": "03 · Trade shares",
+    "file": "full_solution.py",
+    "symbol": "levels_objects",
+    "highlight": [
+      "log_weights =",
+      "log_denominator =",
+      "shares ="
+    ],
+    "equation": "pi[n,i] = T[i] c[n,i]^(-theta) / sum_k T[k] c[n,k]^(-theta)",
+    "explanation": "Normalize competitiveness within each importer row. Log-sum-exp evaluates the denominator without directly raising costs to large negative powers."
+  },
+  {
+    "id": "levels-prices",
+    "route": "levels",
+    "title": "04 · Price indices",
+    "file": "full_solution.py",
+    "symbol": "levels_objects",
+    "highlight": [
+      "prices ="
+    ],
+    "equation": "P[n] = gamma (sum_i T[i] c[n,i]^(-theta))^(-1/theta)",
+    "explanation": "The same denominator determines prices. gamma is a fixed positive multiplier and cancels from price changes."
+  },
+  {
+    "id": "levels-markets",
+    "route": "levels",
+    "title": "05 · Market clearing",
+    "file": "model.py",
+    "symbol": "market_clearing",
+    "highlight": [
+      "sales =",
+      "return (sales"
+    ],
+    "equation": "r[i] = (sum_n pi[n,i] income[n] - income[i]) / income[i]",
+    "explanation": "Transpose the share matrix to sum importer spending into each exporter's sales. This returns all N normalized residuals."
+  },
+  {
+    "id": "levels-solver",
+    "route": "levels",
+    "title": "06 · Levels entry point",
+    "file": "full_solution.py",
+    "symbol": "solve_levels",
+    "highlight": [
+      "objects, residual, diagnostics = iterate_wages",
+      "lambda log_wages:"
+    ],
+    "equation": "unit wages → fixed-damping wage iteration → final economic objects",
+    "explanation": "The levels route supplies its own shares, prices and incomes. The shared wage loop starts at unit wages and retains the final evaluated state."
+  },
+  {
+    "id": "levels-iteration",
+    "route": "levels",
+    "title": "07 · Explicit iteration loop",
+    "file": "iteration.py",
+    "symbol": "iterate_wages",
+    "highlight": [
+      "for iteration in",
+      "q =",
+      "residual =",
+      "if norm < tol:",
+      "log_wages = damped_wage_step"
+    ],
+    "equation": "evaluate → full residual check → simultaneous wage update → normalize → repeat",
+    "explanation": "Every evaluated state is recorded. The loop stops only when the full residual is below the target, the update limit is reached, or the numerical state is invalid. Defaults: damping 0.2, target 1e-13, maximum 10,000 updates."
+  },
+  {
+    "id": "levels-update",
+    "route": "levels",
+    "title": "08 · Damping & normalization",
+    "file": "iteration.py",
+    "symbol": "damped_wage_step",
+    "highlight": [
+      "log_w_next =",
+      "log_w_next -=",
+      "return log_w_next"
+    ],
+    "equation": "w_next[i] ∝ w[i] (sales[i]/income[i])^alpha; w_next[0] = 1",
+    "explanation": "Excess sales relative to income push an exporter's wage up before normalization. Fixed damping takes a fractional log adjustment; subtracting country 0's new log wage fixes the nominal scale after every simultaneous update."
+  },
+  {
+    "id": "hats-inputs",
+    "route": "hats",
+    "title": "01 · Baseline statistics & shock",
+    "file": "exact_hat.py",
+    "symbol": "validate_hat_inputs",
+    "highlight": [
+      "if not baseline.diagnostics.converged",
+      "shock ="
+    ],
+    "equation": "pi0[n,i], income0[i], theta, d_hat[n,i]",
+    "explanation": "Require a valid, converged baseline and positive trade-cost ratios. The resulting level costs must still be admissible iceberg costs."
+  },
+  {
+    "id": "hats-shares",
+    "route": "hats",
+    "title": "02 · Counterfactual shares",
+    "file": "exact_hat.py",
+    "symbol": "hat_objects",
+    "highlight": [
+      "log_a =",
+      "log_row_sum =",
+      "shares ="
+    ],
+    "equation": "a[n,i] = pi0[n,i] (w_hat[i] d_hat[n,i])^(-theta); pi1[n,i] = a[n,i]/sum_k a[n,k]",
+    "explanation": "Reweight baseline shares using wage and trade-cost changes. This route does not recompute levels competitiveness from technology."
+  },
+  {
+    "id": "hats-prices",
+    "route": "hats",
+    "title": "03 · Price changes",
+    "file": "exact_hat.py",
+    "symbol": "hat_objects",
+    "highlight": [
+      "price_hats ="
+    ],
+    "equation": "P_hat[n] = (sum_i a[n,i])^(-1/theta)",
+    "explanation": "The exponent applies to the whole row sum. gamma cancels because it is held fixed across equilibria."
+  },
+  {
+    "id": "hats-markets",
+    "route": "hats",
+    "title": "04 · Hat-market residual",
+    "file": "exact_hat.py",
+    "symbol": "hat_objects",
+    "highlight": [
+      "incomes ="
+    ],
+    "equation": "income1[i] = income0[i] w_hat[i]; sales1[i] = income1[i]",
+    "explanation": "Labor is fixed, so wage hats scale baseline incomes. The shared loop uses these counterfactual incomes and shares to compute every exporter's sales and residual."
+  },
+  {
+    "id": "hats-solver",
+    "route": "hats",
+    "title": "05 · Hat equilibrium solver",
+    "file": "exact_hat.py",
+    "symbol": "solve_exact_hat",
+    "highlight": [
+      "objects, residual, diagnostics = iterate_wages",
+      "real_wage_hats ="
+    ],
+    "equation": "w_hat[0] = 1; real_wage_hat[n] = w_hat[n]/P_hat[n]",
+    "explanation": "Start from unit wage hats and use the same explicit fixed-damping update. Counterfactual shares and incomes are independently computed from baseline statistics; nothing is copied from the counterfactual levels solution."
+  },
+  {
+    "id": "hats-diagnostics",
+    "route": "hats",
+    "title": "06 · Full convergence check",
+    "file": "iteration.py",
+    "symbol": "iterate_wages",
+    "highlight": [
+      "finite_positive =",
+      "norm =",
+      "if not finite_positive:",
+      "if norm < tol:",
+      "if iteration == max_iter:"
+    ],
+    "equation": "finite positive state AND max_i |r[i]| < 1e-13 → converged",
+    "explanation": "Every country participates in the residual check, including country 0. Small wage changes alone are not a stopping rule. Limits and invalid numerical states return explicit failure statuses."
+  },
+  {
+    "id": "check-fixture",
+    "route": "check",
+    "title": "01 · Fix the experiment",
+    "file": "verification.py",
+    "symbol": "fixture",
+    "highlight": [
+      "d_hat[0, 1]"
+    ],
+    "equation": "d1[0,1] = 0.9 d0[0,1]; d1[1,0] = 0.9 d0[1,0]",
+    "explanation": "The proportional cut is symmetric although initial bilateral costs are asymmetric. All other primitives are held fixed."
+  },
+  {
+    "id": "check-levels",
+    "route": "check",
+    "title": "02 · Solve E0 and E1",
+    "file": "verification.py",
+    "symbol": "run_verification",
+    "highlight": [
+      "e0 = solve_levels",
+      "e1 = solve_levels"
+    ],
+    "equation": "E0 = levels(T,L,d0); E1 = levels(T,L,d0*d_hat)",
+    "explanation": "Both levels runs begin from unit wages. Their difference is entirely the pre-specified trade-cost shock."
+  },
+  {
+    "id": "check-hats",
+    "route": "check",
+    "title": "03 · Solve hats from E0",
+    "file": "verification.py",
+    "symbol": "run_verification",
+    "highlight": [
+      "hats = solve_exact_hat"
+    ],
+    "equation": "hats = exact_hat(E0, d_hat)",
+    "explanation": "The same shock reaches the independent route through E0's expenditure shares and incomes."
+  },
+  {
+    "id": "check-ratios",
+    "route": "check",
+    "title": "04 · Compare normalized changes",
+    "file": "verification.py",
+    "symbol": "compare_equilibria",
+    "highlight": [
+      "pairs =",
+      "\"shares\":",
+      "solvers ="
+    ],
+    "equation": "E1/E0 versus hats, under w0[0] = w1[0] = w_hat[0] = 1",
+    "explanation": "Compare wages, prices, all bilateral share ratios, and real wages. The final decision also requires all three convergence flags."
+  },
+  {
+    "id": "check-errors",
+    "route": "check",
+    "title": "05 · Apply both strict bounds",
+    "file": "verification.py",
+    "symbol": "compare_changes",
+    "highlight": [
+      "absolute =",
+      "relative =",
+      "\"passed\": bool"
+    ],
+    "equation": "max |candidate-reference| < 1e-9 AND max |candidate-reference|/|reference| < 1e-9",
+    "explanation": "The denominator is the levels-route ratio, not the change minus one. The two error tests are separate, so one cannot compensate for the other."
+  },
+  {
+    "id": "check-certificate",
+    "route": "check",
+    "title": "06 · Record evidence",
+    "file": "verification.py",
+    "symbol": "run_verification",
+    "highlight": [
+      "certificate.update",
+      "if not certificate[\"passed\"]",
+      "except (ValueError"
+    ],
+    "equation": "PASS = converged(E0,E1,hats) AND every comparison passes",
+    "explanation": "The builder runs this exact verification routine, embeds its certificate, and hashes the reviewed source. A completed run is not itself a pass."
+  }
+]
