@@ -7,6 +7,9 @@ import sys
 
 import pytest
 
+from ek_model import full_solution
+import numpy as np
+
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("builder", ROOT / "scripts/build_model_viewer.py")
 builder = importlib.util.module_from_spec(spec)
@@ -80,3 +83,29 @@ def test_viewer_is_self_contained_and_quiz_has_eight_questions():
             assert question["rubric"]
         else:
             assert 0 <= question["answer"] < len(question["options"])
+
+
+def test_certificate_histories_are_exposed_in_viewer():
+    certificate = json.loads((ROOT / "viewer/verification.json").read_text(encoding="utf-8"))
+    page = (ROOT / "viewer/model_viewer.html").read_text(encoding="utf-8")
+    assert certificate["schema_version"] == 2
+    assert set(certificate["environment"]) == {"python", "numpy"}
+    for name, solver in certificate["solvers"].items():
+        assert f'id="history-{name}"' in page
+        assert f'aria-label="{name} full residual history"' in page
+        assert f'({len(solver["history"])} evaluated states)' in page
+        assert solver["history"][-1]["iteration"] == solver["niter"]
+        assert len(solver["history"]) == solver["nfev"]
+        assert solver["history"][-1]["residual_norm"] == solver["residual_norm"]
+
+
+def test_real_numerical_failure_build_is_json_safe(tmp_path, monkeypatch):
+    def nonfinite(*args):
+        return np.ones(3), np.full(3, np.nan), np.full((3, 3), np.nan), np.ones(3)
+    monkeypatch.setattr(full_solution, "levels_objects", nonfinite)
+    assert builder.main(["--output-dir", str(tmp_path)]) == 1
+    certificate = json.loads((tmp_path / "verification.json").read_text(encoding="utf-8"))
+    assert not certificate["passed"]
+    assert certificate["solvers"]["E0"]["status"] == "numerical_failure"
+    assert certificate["solvers"]["E0"]["history"][0]["residual"][0] is None
+    assert 'id="certificate-status">FAIL' in (tmp_path / "model_viewer.html").read_text(encoding="utf-8")

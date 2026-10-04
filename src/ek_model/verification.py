@@ -4,11 +4,10 @@ from dataclasses import asdict
 import platform
 
 import numpy as np
-import scipy
 
 from .exact_hat import solve_exact_hat
 from .full_solution import solve_levels
-from .model import MAX_NFEV, RESIDUAL_TOL, SOLVER_TOL, Primitives
+from .model import DEFAULT_DAMPING, ITERATION_TOL, MAX_ITER, RESIDUAL_TOL, Primitives
 
 ERROR_TOL = 1e-9
 
@@ -50,15 +49,26 @@ def compare_changes(reference, candidate):
 
 
 def diagnostics_record(equilibrium):
-    """JSON has no Infinity; null records a nonfinite residual as a failure."""
+    """Recheck the full residual; encode nonfinite failure evidence as JSON null."""
     record = asdict(equilibrium.diagnostics)
-    if not np.isfinite(record["residual_norm"]):
-        record["residual_norm"] = None
-        record["converged"] = False
-    elif record["residual_norm"] >= RESIDUAL_TOL:
-        record["converged"] = False
-    record["converged"] = bool(record["converged"] and record["solver_success"])
-    return record
+    actual_norm = float(np.max(np.abs(equilibrium.residual)))
+    record["converged"] = bool(
+        record["converged"] and record["status"] == "converged"
+        and np.isfinite(actual_norm) and actual_norm < RESIDUAL_TOL
+        and np.isfinite(record["residual_norm"]) and record["residual_norm"] < RESIDUAL_TOL
+    )
+    return json_safe(record)
+
+
+def json_safe(value):
+    """History may contain a failed numerical state; preserve it without NaN/Inf."""
+    if isinstance(value, dict):
+        return {key: json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_safe(item) for item in value]
+    if isinstance(value, float) and not np.isfinite(value):
+        return None
+    return value
 
 
 def compare_equilibria(e0, e1, hats):
@@ -83,13 +93,13 @@ def run_verification():
     """Always run the two levels solves and independent hat route afresh."""
     p, shock = fixture()
     certificate = {
-        "schema_version": 1,
-        "environment": {"python": platform.python_version(), "numpy": np.__version__,
-                        "scipy": scipy.__version__},
+        "schema_version": 2,
+        "environment": {"python": platform.python_version(), "numpy": np.__version__},
         "fixture": {"T": p.T.tolist(), "L": p.L.tolist(), "d": p.d.tolist(),
                     "theta": p.theta, "gamma": p.gamma, "d_hat": shock.tolist()},
         "contract": {"error_tolerance": ERROR_TOL, "residual_tolerance": RESIDUAL_TOL,
-                     "solver_tolerance": SOLVER_TOL, "max_nfev": MAX_NFEV,
+                     "iteration_tolerance": ITERATION_TOL, "max_iter": MAX_ITER,
+                     "damping": DEFAULT_DAMPING, "method": "fixed-damping multiplicative wage iteration",
                      "numeraire": "w[0] = w_hat[0] = 1",
                      "relative_denominator": "absolute levels-route ratio",
                      "residual": "max_i abs((sales[i]-income[i])/income[i])"},

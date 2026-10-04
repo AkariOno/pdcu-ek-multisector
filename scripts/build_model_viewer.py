@@ -10,6 +10,7 @@ import ast
 import hashlib
 import html
 import json
+import math
 from pathlib import Path
 import sys
 
@@ -90,7 +91,7 @@ def render_certificate(certificate):
     )
     solvers = "".join(
         f'<tr><th scope="row">{escape(name)}</th><td>{escape(row["converged"])}</td>'
-        f'<td>{escape(row["solver_success"])}</td><td>{row["nfev"]}</td>'
+        f'<td>{row["niter"]}</td><td>{row["nfev"]}</td><td>{row["damping"]}</td>'
         f'<td>{number(row["residual_norm"])}</td><td>{row["status"]}: {escape(row["message"])}</td></tr>'
         for name, row in sorted(certificate["solvers"].items())
     )
@@ -102,13 +103,61 @@ def render_certificate(certificate):
         '<thead><tr><th>Object</th><th>Max absolute error</th><th>Max relative error</th>'
         f'<th>Each error must be</th><th>Result</th></tr></thead><tbody>{comparisons}</tbody></table></div>'
         '<div class="table-scroll"><table><caption>All-country market-clearing diagnostics</caption>'
-        '<thead><tr><th>Route</th><th>Converged</th><th>Solver success</th><th>Evaluations</th>'
+        '<thead><tr><th>Route</th><th>Converged</th><th>Wage updates</th><th>Evaluations</th><th>Damping</th>'
         f'<th>Full residual norm</th><th>Status / message</th></tr></thead><tbody>{solvers}</tbody></table></div>'
-        '<p class="muted">Evaluations are SciPy’s reported nfev; finite-difference Jacobian calls are not included. '
+        '<p class="muted">Evaluations include the initial unit-wage state and each evaluated update. '
         'The residual is maxᵢ |(salesᵢ − incomeᵢ) / incomeᵢ|, including country 0.</p>'
+        + render_histories(certificate) +
         '<details class="raw-evidence"><summary>Inspect fixture, shock, versions, contract & source hashes</summary>'
         f'<pre>{html.escape(json_bytes(certificate).decode())}</pre></details>'
     )
+
+
+def render_histories(certificate):
+    """Plot saved all-country residuals; expose every wage and residual snapshot."""
+    panels = []
+    target = certificate["contract"]["iteration_tolerance"]
+    for name, solver in sorted(certificate["solvers"].items()):
+        history = solver["history"]
+        finite = [row for row in history if row["residual_norm"] is not None]
+        if finite:
+            # This floor is for plotting only; acceptance always uses the true norm.
+            low = math.floor(math.log10(max(min(target, min(row["residual_norm"] for row in finite)), 1e-16)))
+            high = max(low + 1, math.ceil(math.log10(max(target, max(row["residual_norm"] for row in finite), 1e-16))))
+            max_iteration = max(1, history[-1]["iteration"])
+            xpos = lambda i: 70 + 660 * i / max_iteration
+            ypos = lambda norm: 24 + 140 * (high - math.log10(max(norm, 1e-16))) / (high - low)
+            points = " ".join(f'{xpos(row["iteration"]):.3f},{ypos(row["residual_norm"]):.3f}' for row in finite)
+            ticks = "".join(
+                f'<text x="60" y="{ypos(10. ** exponent):.3f}" text-anchor="end">1e{exponent}</text>'
+                for exponent in range(low, high + 1, max(1, (high - low) // 4))
+            )
+            plot = (
+                f'<svg class="residual-plot" viewBox="0 0 760 210" role="img" aria-label="{name} full residual history">'
+                f'<title>{name}: full market-clearing residual by wage update</title>'
+                '<path d="M70 20 V164 H730" fill="none" stroke="#90a3b0"/>'
+                f'<line x1="70" x2="730" y1="{ypos(target):.3f}" y2="{ypos(target):.3f}" stroke="#c28312" stroke-dasharray="5 4"/>'
+                f'<polyline points="{points}" fill="none" stroke="#174bb4" stroke-width="2.5"/>{ticks}'
+                f'<text x="70" y="185">0</text><text x="730" y="185" text-anchor="end">{history[-1]["iteration"]}</text>'
+                '<text x="400" y="204" text-anchor="middle">Wage updates</text></svg>'
+            )
+        else:
+            plot = '<p class="fail">No finite residual history is available.</p>'
+        value = lambda x: "nonfinite" if x is None else f"{x:.12g}"
+        rows = "".join(
+            f'<tr><td>{row["iteration"]}</td><td>{html.escape(", ".join(value(w) for w in row["wages"]))}</td>'
+            f'<td>{html.escape(", ".join(value(r) for r in row["residual"]))}</td>'
+            f'<td>{value(row["residual_norm"])}</td></tr>' for row in history
+        )
+        panels.append(
+            f'<section class="history-panel" id="history-{name}"><h3>{name} · iteration history</h3>{plot}'
+            f'<p class="muted">Fixed damping {solver["damping"]}; dashed line = iteration target {target:g}. '
+            'Vertical axis is logarithmic; zero norms use a display floor of 1e-16.</p>'
+            f'<details><summary>Inspect {name} wages and full residual vectors ({len(history)} evaluated states)</summary>'
+            '<div class="table-scroll"><table><thead><tr><th>Update</th><th>Wages / wage hats, country order</th>'
+            f'<th>Residual vector, country order</th><th>Full norm</th></tr></thead><tbody>{rows}</tbody></table></div></details></section>'
+        )
+    return '<div class="iteration-histories">' + "".join(panels) + '</div>'
 
 
 def render_quiz(quiz):

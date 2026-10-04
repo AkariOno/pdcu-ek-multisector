@@ -5,18 +5,17 @@ and read theta. No levels solver or levels price/share calculation is called.
 """
 
 import numpy as np
-from scipy.optimize import least_squares
-from scipy.special import logsumexp
-
+from .iteration import iterate_wages
 from .model import (
-    MAX_NFEV, RESIDUAL_TOL, SOLVER_TOL, Equilibrium, HatEquilibrium, Primitives,
-    make_diagnostics, market_clearing, normalized_wages, positive_array,
+    DEFAULT_DAMPING, ITERATION_TOL, MAX_ITER, RESIDUAL_TOL,
+    Equilibrium, HatEquilibrium, Primitives,
+    market_clearing, normalized_wages, positive_array, row_logsumexp,
 )
 
 
 def validate_hat_inputs(baseline: Equilibrium, d_hat):
     """Require a converged baseline and an admissible trade-cost-only shock."""
-    if not baseline.diagnostics.converged:
+    if not baseline.diagnostics.converged or baseline.diagnostics.status != "converged":
         raise ValueError("exact hats require a converged baseline")
     n = baseline.primitives.T.size
     shares = positive_array(baseline.shares, "baseline shares")
@@ -35,39 +34,30 @@ def validate_hat_inputs(baseline: Equilibrium, d_hat):
     return shock
 
 
-def hat_objects(baseline: Equilibrium, d_hat, log_free_hats):
+def hat_objects(baseline: Equilibrium, d_hat, log_hats):
     """The log row sum is log(sum_i pi0[n,i]*(w_hat[i]*d_hat[n,i])^-theta)."""
-    wage_hats = normalized_wages(log_free_hats)
+    wage_hats = normalized_wages(log_hats)
     log_a = np.log(baseline.shares) - baseline.primitives.theta * (
-        np.log(wage_hats)[None, :] + np.log(d_hat)
+        (log_hats - log_hats[0])[None, :] + np.log(d_hat)
     )
-    log_row_sum = logsumexp(log_a, axis=1)
+    log_row_sum = row_logsumexp(log_a)
     shares = np.exp(log_a - log_row_sum[:, None])
     price_hats = np.exp(-log_row_sum / baseline.primitives.theta)
     incomes = baseline.incomes * wage_hats
     return wage_hats, price_hats, shares, incomes
 
 
-def hat_residual(log_free_hats, baseline: Equilibrium, d_hat):
-    """New sales must equal baseline income multiplied by each wage hat."""
-    _, _, shares, incomes = hat_objects(baseline, d_hat, log_free_hats)
-    return market_clearing(shares, incomes)[1:]
-
-
-def solve_exact_hat(baseline: Equilibrium, d_hat) -> HatEquilibrium:
-    """Solve log wage changes independently, fixing country 0's wage hat to 1."""
+def solve_exact_hat(baseline: Equilibrium, d_hat, *, damping=DEFAULT_DAMPING,
+                    max_iter=MAX_ITER, tol=ITERATION_TOL) -> HatEquilibrium:
+    """Adjust wage hats independently, starting from unit hats and fixing hat[0]."""
     shock = validate_hat_inputs(baseline, d_hat)
-    result = least_squares(
-        hat_residual, np.zeros(baseline.incomes.size - 1), args=(baseline, shock),
-        ftol=SOLVER_TOL, xtol=SOLVER_TOL, gtol=SOLVER_TOL, max_nfev=MAX_NFEV,
+    objects, residual, diagnostics = iterate_wages(
+        lambda log_hats: hat_objects(baseline, shock, log_hats), baseline.incomes.size,
+        damping=damping, max_iter=max_iter, tol=tol,
     )
+    wage_hats, price_hats, shares, incomes = objects
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
-        wage_hats, price_hats, shares, incomes = hat_objects(baseline, shock, result.x)
         real_wage_hats = wage_hats / price_hats
-        residual = market_clearing(shares, incomes)
-    diagnostics = make_diagnostics(
-        result, residual, wage_hats, price_hats, shares, incomes, real_wage_hats,
-    )
     return HatEquilibrium(
         wage_hats, price_hats, shares, incomes, real_wage_hats, residual, diagnostics,
     )

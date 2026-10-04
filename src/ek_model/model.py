@@ -9,9 +9,10 @@ import numpy as np
 from numpy.typing import NDArray
 
 Array = NDArray[np.float64]
-SOLVER_TOL = 1e-13
+ITERATION_TOL = 1e-13
 RESIDUAL_TOL = 1e-11
-MAX_NFEV = 2000
+DEFAULT_DAMPING = 0.2
+MAX_ITER = 10_000
 
 
 def positive_array(value, name: str) -> Array:
@@ -53,13 +54,27 @@ class Primitives:
 
 
 @dataclass(frozen=True)
+class IterationRecord:
+    """Immutable snapshots, including initial wages and every evaluated update."""
+
+    iteration: int
+    wages: tuple[float, ...]
+    residual: tuple[float, ...]
+    residual_norm: float
+
+
+@dataclass(frozen=True)
 class Diagnostics:
     converged: bool
-    solver_success: bool
-    status: int
+    status: str
     message: str
+    niter: int
     nfev: int
     residual_norm: float
+    damping: float
+    tolerance: float
+    max_iter: int
+    history: tuple[IterationRecord, ...]
 
 
 @dataclass(frozen=True)
@@ -85,9 +100,9 @@ class HatEquilibrium:
     diagnostics: Diagnostics
 
 
-def normalized_wages(log_free_wages: Array) -> Array:
+def normalized_wages(log_wages: Array) -> Array:
     """Country 0 is the numeraire exactly, not a post-solve rescaling."""
-    return np.exp(np.concatenate(([0.0], log_free_wages)))
+    return np.exp(log_wages - log_wages[0])
 
 
 def market_clearing(shares: Array, incomes: Array) -> Array:
@@ -96,15 +111,8 @@ def market_clearing(shares: Array, incomes: Array) -> Array:
     return (sales - incomes) / incomes
 
 
-def make_diagnostics(result, residual: Array, *outputs: Array) -> Diagnostics:
-    """Optimizer success alone never certifies economic convergence."""
-    finite = all(np.all(np.isfinite(x)) for x in (residual, *outputs))
-    norm = float(np.max(np.abs(residual))) if finite else float("inf")
-    return Diagnostics(
-        converged=bool(result.success and finite and norm < RESIDUAL_TOL),
-        solver_success=bool(result.success),
-        status=int(result.status),
-        message=str(result.message),
-        nfev=int(result.nfev),
-        residual_norm=norm,
-    )
+def row_logsumexp(log_weights: Array) -> Array:
+    """NumPy-only log(sum_i exp(log_weights[n,i])) with row-max shifting."""
+    row_max = np.max(log_weights, axis=1)
+    shifted_sum = np.sum(np.exp(log_weights - row_max[:, None]), axis=1)
+    return row_max + np.log(shifted_sum)

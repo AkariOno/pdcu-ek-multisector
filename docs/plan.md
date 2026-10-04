@@ -1,5 +1,7 @@
 # Establish the one-industry Eaton–Kortum PDCU baseline
 
+Historical plan for [issue #1](https://github.com/AkariOno/pdcu-ek-multisector/issues/1). Its solver specification is superseded by [issue #3](https://github.com/AkariOno/pdcu-ek-multisector/issues/3) and the [damped iteration plan](plans/damped-wage-iteration.md); the original specification below is retained for the cycle record. See [latest.md](latest.md) for the current implementation.
+
 ## Summary and provenance
 
 Create the complete, tested one-industry baseline required by the later multi-industry tutorial. The starting checkout contains documentation only.

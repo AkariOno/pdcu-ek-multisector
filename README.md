@@ -8,6 +8,8 @@ The intended tutorial begins from a tested one-industry Eaton-Kortum model. This
 
 Start with the [current one-industry specification](docs/latest.md), [baseline plan and issue](https://github.com/AkariOno/pdcu-ek-multisector/issues/1), and [offline code viewer](viewer/model_viewer.html). Download or open the HTML locally to use the interactions; GitHub's source view does not execute it.
 
+The current solver follows [the damped wage iteration plan, issue #3](https://github.com/AkariOno/pdcu-ek-multisector/issues/3). Both levels and exact hats use a transparent NumPy-only loop: multiply each wage by `(sales/income)**0.2`, normalize country 0, and recompute until every market residual meets the target. The viewer exposes the actual loop and each solve's residual and wage history.
+
 ### Run the baseline
 
 With Python 3.12 in an activated virtual environment:
@@ -319,4 +321,4 @@ These are possible later PDCU exercises, but they are not prerequisites for trea
 
 ## Status
 
-The one-industry baseline uses Python/NumPy/SciPy, three countries, a symmetric proportional 10% bilateral trade-cost cut between countries 0 and 1, country 0 as wage numeraire, separate strict absolute and relative comparison tolerances of `1e-9`, and session-only quiz answers. The full normalized residual must be below `1e-11`, and all three solves must converge. These choices and reproduction instructions are fixed in `docs/latest.md`. Human review and learner understanding are pending. The later multi-industry cycle must specify its industry dimensions, demand shares, and shock before implementation.
+The one-industry baseline uses Python and NumPy, three countries, and a symmetric proportional 10% bilateral trade-cost cut between countries 0 and 1. Both routes use fixed damped multiplicative wage iteration, default damping `0.2`, at most 10,000 updates, and a strict full residual target of `1e-13`. Country 0 is normalized after every update. Verification requires all three solves to converge, full residual norms below `1e-11`, and separate strict absolute and relative comparison errors below `1e-9`. Quiz answers are session-only. These choices and reproduction instructions are fixed in `docs/latest.md`. Human review and learner understanding are pending. The later multi-industry cycle must specify its industry dimensions, demand shares, and shock before implementation.

@@ -1,46 +1,35 @@
 """Solve the levels economy directly from its primitives."""
 
 import numpy as np
-from scipy.optimize import least_squares
-from scipy.special import logsumexp
-
+from .iteration import iterate_wages
 from .model import (
-    MAX_NFEV, SOLVER_TOL, Equilibrium, Primitives,
-    make_diagnostics, market_clearing, normalized_wages,
+    DEFAULT_DAMPING, ITERATION_TOL, MAX_ITER, Equilibrium, Primitives,
+    normalized_wages, row_logsumexp,
 )
 
 
-def levels_objects(primitives: Primitives, log_free_wages):
+def levels_objects(primitives: Primitives, log_wages):
     """Delivered unit costs determine importer-row shares and price indices."""
-    wages = normalized_wages(log_free_wages)
-    log_costs = np.log(wages)[None, :] + np.log(primitives.d)
+    wages = normalized_wages(log_wages)
+    log_costs = (log_wages - log_wages[0])[None, :] + np.log(primitives.d)
     log_weights = np.log(primitives.T)[None, :] - primitives.theta * log_costs
-    log_denominator = logsumexp(log_weights, axis=1)
+    log_denominator = row_logsumexp(log_weights)
     shares = np.exp(log_weights - log_denominator[:, None])
     prices = primitives.gamma * np.exp(-log_denominator / primitives.theta)
     incomes = wages * primitives.L
     return wages, prices, shares, incomes
 
 
-def levels_residual(log_free_wages, primitives: Primitives):
-    """Drop only the numeraire country's equation from the optimizer system."""
-    _, _, shares, incomes = levels_objects(primitives, log_free_wages)
-    return market_clearing(shares, incomes)[1:]
-
-
-def solve_levels(primitives: Primitives) -> Equilibrium:
-    """Start from unit wages and retain full, normalized residual diagnostics."""
-    result = least_squares(
-        levels_residual, np.zeros(primitives.T.size - 1), args=(primitives,),
-        ftol=SOLVER_TOL, xtol=SOLVER_TOL, gtol=SOLVER_TOL, max_nfev=MAX_NFEV,
+def solve_levels(primitives: Primitives, *, damping=DEFAULT_DAMPING,
+                 max_iter=MAX_ITER, tol=ITERATION_TOL) -> Equilibrium:
+    """Start from unit wages and adjust using exporter sales divided by income."""
+    objects, residual, diagnostics = iterate_wages(
+        lambda log_wages: levels_objects(primitives, log_wages), primitives.T.size,
+        damping=damping, max_iter=max_iter, tol=tol,
     )
+    wages, prices, shares, incomes = objects
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
-        wages, prices, shares, incomes = levels_objects(primitives, result.x)
         real_wages = wages / prices
-        residual = market_clearing(shares, incomes)
-    diagnostics = make_diagnostics(
-        result, residual, wages, prices, shares, incomes, real_wages,
-    )
     return Equilibrium(
         primitives, wages, prices, shares, incomes, real_wages, residual, diagnostics,
     )

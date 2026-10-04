@@ -7,7 +7,7 @@ name = "pdcu-ek-model"
 version = "0.1.0"
 description = "A verified one-industry Eaton–Kortum teaching baseline"
 requires-python = ">=3.12"
-dependencies = ["numpy>=2.0,<3", "scipy>=1.14,<2"]
+dependencies = ["numpy>=2.0,<3"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10"]
