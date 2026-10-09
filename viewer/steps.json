@@ -9,8 +9,8 @@
       "class Primitives",
       "def __post_init__"
     ],
-    "equation": "T[i], L[i], d[n,i], theta, gamma",
-    "explanation": "Positive technology and labor; unit domestic iceberg costs. Rows always denote importers n and columns exporters i."
+    "equation": "T[i,j], L[i], d[n,i,j], theta[j], alpha[n,j], gamma[j]",
+    "explanation": "Explicit industry axes; positive primitives and preference shares. Demand-share rows sum to one without renormalization. Domestic costs are one in every industry."
   },
   {
     "id": "levels-costs",
@@ -21,8 +21,8 @@
     "highlight": [
       "log_costs ="
     ],
-    "equation": "c[n,i] = w[i] d[n,i]",
-    "explanation": "One wage per exporter scales its production cost, then bilateral iceberg costs determine the delivered cost."
+    "equation": "delivered_cost[n,i,j] = w[i] d[n,i,j]",
+    "explanation": "Labor moves between domestic industries, so one exporter wage applies to every industry. Labor does not move internationally."
   },
   {
     "id": "levels-shares",
@@ -35,38 +35,50 @@
       "log_denominator =",
       "shares ="
     ],
-    "equation": "pi[n,i] = T[i] c[n,i]^(-theta) / sum_k T[k] c[n,k]^(-theta)",
-    "explanation": "Normalize competitiveness within each importer row. Log-sum-exp evaluates the denominator without directly raising costs to large negative powers."
+    "equation": "pi[n,i,j] = T[i,j] (w[i]d[n,i,j])^(-theta[j]) / sum_k T[k,j](w[k]d[n,k,j])^(-theta[j])",
+    "explanation": "Sum over exporter axis 1, independently within each importer and industry. The (N,J) log denominator broadcasts back across exporters."
   },
   {
     "id": "levels-prices",
     "route": "levels",
-    "title": "04 · Price indices",
+    "title": "04 · Industry prices",
     "file": "full_solution.py",
     "symbol": "levels_objects",
     "highlight": [
       "prices ="
     ],
-    "equation": "P[n] = gamma (sum_i T[i] c[n,i]^(-theta))^(-1/theta)",
-    "explanation": "The same denominator determines prices. gamma is a fixed positive multiplier and cancels from price changes."
+    "equation": "P[n,j] = gamma[j] S[n,j]^(-1/theta[j])",
+    "explanation": "Each industry's elasticity and fixed gamma determine its price index. Gamma is unchanged by the counterfactual."
+  },
+  {
+    "id": "levels-aggregate",
+    "route": "levels",
+    "title": "05 · Aggregate cost of living",
+    "file": "model.py",
+    "symbol": "aggregate_price",
+    "highlight": [
+      "return np.exp",
+      "alpha * np.log"
+    ],
+    "equation": "U[n] = product_j(c[n,j]/alpha[n,j])^alpha[n,j]; C[n] = product_j P[n,j]^alpha[n,j]",
+    "explanation": "Normalized Cobb–Douglas utility gives a weighted geometric mean of industry prices. There are no additional preference constants in C. Real wages are w/C. For J=1, alpha=1 returns the sole industry price exactly."
   },
   {
     "id": "levels-markets",
     "route": "levels",
-    "title": "05 · Market clearing",
+    "title": "06 · Market clearing",
     "file": "model.py",
-    "symbol": "market_clearing",
+    "symbol": "exporter_sales",
     "highlight": [
-      "sales =",
-      "return (sales"
+      "return np.einsum"
     ],
-    "equation": "r[i] = (sum_n pi[n,i] income[n] - income[i]) / income[i]",
-    "explanation": "Transpose the share matrix to sum importer spending into each exporter's sales. This returns all N normalized residuals."
+    "equation": "X[n,j] = alpha[n,j] income[n]; sales[i] = sum_n sum_j pi[n,i,j]X[n,j]",
+    "explanation": "Aggregate importer spending over all industries to determine each exporter's sales. Balanced trade applies to country totals, not separately to each industry."
   },
   {
     "id": "levels-solver",
     "route": "levels",
-    "title": "06 · Levels entry point",
+    "title": "07 · Levels entry point",
     "file": "full_solution.py",
     "symbol": "solve_levels",
     "highlight": [
@@ -79,7 +91,7 @@
   {
     "id": "levels-iteration",
     "route": "levels",
-    "title": "07 · Explicit iteration loop",
+    "title": "08 · Explicit iteration loop",
     "file": "iteration.py",
     "symbol": "iterate_wages",
     "highlight": [
@@ -95,7 +107,7 @@
   {
     "id": "levels-update",
     "route": "levels",
-    "title": "08 · Damping & normalization",
+    "title": "09 · Damping & normalization",
     "file": "iteration.py",
     "symbol": "damped_wage_step",
     "highlight": [
@@ -103,8 +115,8 @@
       "log_w_next -=",
       "return log_w_next"
     ],
-    "equation": "w_next[i] ∝ w[i] (sales[i]/income[i])^alpha; w_next[0] = 1",
-    "explanation": "Excess sales relative to income push an exporter's wage up before normalization. Fixed damping takes a fractional log adjustment; subtracting country 0's new log wage fixes the nominal scale after every simultaneous update."
+    "equation": "w_next[i] ∝ w[i] (sales[i]/income[i])^damping; w_next[0] = 1",
+    "explanation": "Fixed damping 0.2 is a numerical control distinct from demand shares alpha[n,j]. Update wages simultaneously, then normalize country 0."
   },
   {
     "id": "hats-inputs",
@@ -116,8 +128,8 @@
       "if not baseline.diagnostics.converged",
       "shock ="
     ],
-    "equation": "pi0[n,i], income0[i], theta, d_hat[n,i]",
-    "explanation": "Require a valid, converged baseline and positive trade-cost ratios. The resulting level costs must still be admissible iceberg costs."
+    "equation": "pi0[n,i,j], income0[i], theta[j], alpha[n,j], d_hat[n,i,j]",
+    "explanation": "A converged baseline supplies shares and country incomes. Preferences and elasticities stay fixed. Shocked cost levels must remain admissible in every industry."
   },
   {
     "id": "hats-shares",
@@ -130,50 +142,63 @@
       "log_row_sum =",
       "shares ="
     ],
-    "equation": "a[n,i] = pi0[n,i] (w_hat[i] d_hat[n,i])^(-theta); pi1[n,i] = a[n,i]/sum_k a[n,k]",
-    "explanation": "Reweight baseline shares using wage and trade-cost changes. This route does not recompute levels competitiveness from technology."
+    "equation": "a[n,i,j] = pi0[n,i,j](w_hat[i]d_hat[n,i,j])^(-theta[j]); pi1 = a / sum_i a",
+    "explanation": "Reweight each industry's baseline shares. This route never calls levels competitiveness or reads counterfactual levels wages."
   },
   {
     "id": "hats-prices",
     "route": "hats",
-    "title": "03 · Price changes",
+    "title": "03 · Industry price changes",
     "file": "exact_hat.py",
     "symbol": "hat_objects",
     "highlight": [
       "price_hats ="
     ],
-    "equation": "P_hat[n] = (sum_i a[n,i])^(-1/theta)",
-    "explanation": "The exponent applies to the whole row sum. gamma cancels because it is held fixed across equilibria."
+    "equation": "P_hat[n,j] = (sum_i a[n,i,j])^(-1/theta[j])",
+    "explanation": "The exponent applies to each importer/industry exporter sum. Fixed industry gamma cancels from price ratios."
+  },
+  {
+    "id": "hats-aggregate",
+    "route": "hats",
+    "title": "04 · Aggregate price changes",
+    "file": "exact_hat.py",
+    "symbol": "hat_objects",
+    "highlight": [
+      "cost_of_living_hats ="
+    ],
+    "equation": "C_hat[n] = product_j P_hat[n,j]^alpha[n,j]",
+    "explanation": "Fixed preferences imply that the ratio of aggregate levels indices is this product of industry price hats. Demand and market clearing are unchanged by utility normalization."
   },
   {
     "id": "hats-markets",
     "route": "hats",
-    "title": "04 · Hat-market residual",
+    "title": "05 · Country spending",
     "file": "exact_hat.py",
     "symbol": "hat_objects",
     "highlight": [
-      "incomes ="
+      "incomes =",
+      "expenditures ="
     ],
-    "equation": "income1[i] = income0[i] w_hat[i]; sales1[i] = income1[i]",
-    "explanation": "Labor is fixed, so wage hats scale baseline incomes. The shared loop uses these counterfactual incomes and shares to compute every exporter's sales and residual."
+    "equation": "income1[n] = income0[n] w_hat[n]; X1[n,j] = alpha[n,j] income1[n]",
+    "explanation": "Fixed labor makes wage hats scale country incomes. Allocate spending using fixed alpha before summing exporter sales over importers and industries."
   },
   {
     "id": "hats-solver",
     "route": "hats",
-    "title": "05 · Hat equilibrium solver",
+    "title": "06 · Hat equilibrium solver",
     "file": "exact_hat.py",
     "symbol": "solve_exact_hat",
     "highlight": [
       "objects, residual, diagnostics = iterate_wages",
       "real_wage_hats ="
     ],
-    "equation": "w_hat[0] = 1; real_wage_hat[n] = w_hat[n]/P_hat[n]",
-    "explanation": "Start from unit wage hats and use the same explicit fixed-damping update. Counterfactual shares and incomes are independently computed from baseline statistics; nothing is copied from the counterfactual levels solution."
+    "equation": "w_hat[0] = 1; real_wage_hat[n] = w_hat[n]/C_hat[n]",
+    "explanation": "The shared wage loop uses independently calculated hat economics. Welfare changes use aggregate cost-of-living hats."
   },
   {
     "id": "hats-diagnostics",
     "route": "hats",
-    "title": "06 · Full convergence check",
+    "title": "07 · Full convergence check",
     "file": "iteration.py",
     "symbol": "iterate_wages",
     "highlight": [
@@ -193,10 +218,10 @@
     "file": "verification.py",
     "symbol": "fixture",
     "highlight": [
-      "d_hat[0, 1]"
+      "d_hat[0, 1, 0]"
     ],
-    "equation": "d1[0,1] = 0.9 d0[0,1]; d1[1,0] = 0.9 d0[1,0]",
-    "explanation": "The proportional cut is symmetric although initial bilateral costs are asymmetric. All other primitives are held fixed."
+    "equation": "d_hat[0,1,0] = d_hat[1,0,0] = 0.9; all other entries = 1",
+    "explanation": "Three countries, two heterogeneous industries; only industry 0's two bilateral costs fall. Industry 1's equilibrium still responds through wages."
   },
   {
     "id": "check-levels",
@@ -208,8 +233,8 @@
       "e0 = solve_levels",
       "e1 = solve_levels"
     ],
-    "equation": "E0 = levels(T,L,d0); E1 = levels(T,L,d0*d_hat)",
-    "explanation": "Both levels runs begin from unit wages. Their difference is entirely the pre-specified trade-cost shock."
+    "equation": "E0 = levels(primitives); E1 = levels(primitives with d1=d0*d_hat)",
+    "explanation": "Both solves start at unit wages. Technologies, labor, elasticities, preferences and gamma stay fixed."
   },
   {
     "id": "check-hats",
@@ -234,8 +259,8 @@
       "\"shares\":",
       "solvers ="
     ],
-    "equation": "E1/E0 versus hats, under w0[0] = w1[0] = w_hat[0] = 1",
-    "explanation": "Compare wages, prices, all bilateral share ratios, and real wages. The final decision also requires all three convergence flags."
+    "equation": "w1/w0, P1/P0, C1/C0, pi1/pi0, real_wage1/real_wage0 versus hats",
+    "explanation": "Five comparisons cover 3 wages, 6 industry prices, 3 aggregate prices, 18 bilateral industry share ratios, and 3 welfare changes. All three routes must converge."
   },
   {
     "id": "check-errors",
@@ -259,10 +284,25 @@
     "symbol": "run_verification",
     "highlight": [
       "certificate.update",
-      "if not certificate[\"passed\"]",
+      "certificate[\"j1_regression\"]",
+      "certificate[\"passed\"] = False",
       "except (ValueError"
     ],
     "equation": "PASS = converged(E0,E1,hats) AND every comparison passes",
     "explanation": "The builder runs this exact verification routine, embeds its certificate, and hashes the reviewed source. A completed run is not itself a pass."
+  },
+  {
+    "id": "check-j1",
+    "route": "check",
+    "title": "07 · J=1 regression",
+    "file": "regression.py",
+    "symbol": "run_j1_regression",
+    "highlight": [
+      "reference = reference_data",
+      "comparisons[",
+      "np.array_equal"
+    ],
+    "equation": "J=1, alpha[:,0]=1 → accepted one-industry E0, E1 and exact hats",
+    "explanation": "Compare 18 objects against immutable data captured before code changes at the accepted PR #4 revision. Separate absolute and relative bounds and convergence apply. There is no duplicate historical solver."
   }
 ]

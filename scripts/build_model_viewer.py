@@ -31,6 +31,7 @@ def digest(data):
 
 def input_hashes(root=ROOT):
     production = sorted((root / "src/ek_model").glob("*.py"))
+    production += sorted((root / "src/ek_model/data").glob("*.json"))
     inputs = [root / path for path in (
         "scripts/build_model_viewer.py", "viewer/template.html", "viewer/steps.json",
         "viewer/quiz.json", "pyproject.toml", "requirements-repro.txt",
@@ -107,9 +108,30 @@ def render_certificate(certificate):
         f'<th>Full residual norm</th><th>Status / message</th></tr></thead><tbody>{solvers}</tbody></table></div>'
         '<p class="muted">Evaluations include the initial unit-wage state and each evaluated update. '
         'The residual is maxᵢ |(salesᵢ − incomeᵢ) / incomeᵢ|, including country 0.</p>'
-        + render_histories(certificate) +
+        + render_histories(certificate) + render_regression(certificate) +
         '<details class="raw-evidence"><summary>Inspect fixture, shock, versions, contract & source hashes</summary>'
         f'<pre>{html.escape(json_bytes(certificate).decode())}</pre></details>'
+    )
+
+
+def render_regression(certificate):
+    """Show all immutable-reference comparisons without claiming human acceptance."""
+    regression = certificate.get("j1_regression")
+    if not regression:
+        return '<p class="fail">J=1 regression evidence unavailable on this failed run.</p>'
+    rows = "".join(
+        f'<tr><th scope="row">{html.escape(name)}</th><td>{row["max_absolute_error"]}</td>'
+        f'<td>{row["max_relative_error"]}</td><td>{"PASS" if row["passed"] else "FAIL"}</td></tr>'
+        for name, row in sorted(regression["comparisons"].items())
+    )
+    return (
+        '<details id="j1-regression"><summary>J=1 compatibility with the accepted one-industry baseline · '
+        f'{"PASS" if regression["passed"] else "FAIL"}</summary>'
+        f'<p>Source commit: <code>{regression["source_commit"]}</code>. '
+        f'Immutable data SHA-256: <code>{regression["reference_sha256"]}</code>. '
+        'Both errors must separately be below 1e-9; all three regression solves must converge.</p>'
+        '<div class="table-scroll"><table><thead><tr><th>Object</th><th>Absolute error</th>'
+        f'<th>Relative error</th><th>Result</th></tr></thead><tbody>{rows}</tbody></table></div></details>'
     )
 
 
