@@ -6,7 +6,7 @@ import pytest
 from ek_model import Primitives, solve_exact_hat, solve_levels
 from ek_model import exact_hat, full_solution, verification
 from ek_model.iteration import damped_wage_step, iterate_wages
-from ek_model.model import ITERATION_TOL, RESIDUAL_TOL, market_clearing, row_logsumexp
+from ek_model.model import ITERATION_TOL, RESIDUAL_TOL, EconomicState, aggregate_price, exporter_sales, market_clearing, row_logsumexp
 from ek_model.verification import compare_changes, compare_equilibria, fixture, run_verification
 
 
@@ -22,7 +22,7 @@ def test_prespecified_equivalence():
     certificate = run_verification()
     assert certificate["passed"], certificate
     assert set(certificate["solvers"]) == {"E0", "E1", "exact_hat"}
-    assert set(certificate["comparisons"]) == {"wages", "prices", "shares", "real_wages"}
+    assert set(certificate["comparisons"]) == {"wages", "prices", "cost_of_living", "shares", "real_wages"}
     for row in certificate["comparisons"].values():
         assert row["max_absolute_error"] < 1e-9
         assert row["max_relative_error"] < 1e-9
@@ -37,7 +37,7 @@ def test_equations_and_diagnostics(solutions):
         assert eq.diagnostics.nfev == eq.diagnostics.niter + 1
         assert len(eq.diagnostics.history) == eq.diagnostics.nfev
         np.testing.assert_allclose(eq.shares.sum(axis=1), 1, rtol=0, atol=1e-14)
-        actual = market_clearing(eq.shares, eq.incomes)
+        actual = market_clearing(eq.shares, eq.incomes, eq.expenditures)
         np.testing.assert_array_equal(eq.residual, actual)
         assert eq.diagnostics.residual_norm == max(abs(actual)) < RESIDUAL_TOL
         assert eq.diagnostics.residual_norm < ITERATION_TOL
@@ -52,8 +52,8 @@ def test_equations_and_diagnostics(solutions):
     for eq in (e0, e1):
         p = eq.primitives
         # Direct equations provide an oracle independent of log-sum-exp code.
-        weights = p.T[None, :] * (eq.wages[None, :] * p.d) ** (-p.theta)
-        np.testing.assert_allclose(eq.shares, weights / weights.sum(axis=1)[:, None],
+        weights = p.T[None, :, :] * (eq.wages[None, :, None] * p.d) ** (-p.theta)
+        np.testing.assert_allclose(eq.shares, weights / weights.sum(axis=1)[:, None, :],
                                    rtol=1e-13, atol=0)
         np.testing.assert_allclose(eq.prices, p.gamma * weights.sum(axis=1) ** (-1 / p.theta),
                                    rtol=1e-13, atol=0)
@@ -65,7 +65,7 @@ def test_no_shock(solutions):
     assert hats.diagnostics.converged
     assert hats.diagnostics.niter == 0
     assert hats.diagnostics.nfev == 1
-    for values in (hats.wage_hats, hats.price_hats, hats.real_wage_hats):
+    for values in (hats.wage_hats, hats.price_hats, hats.cost_of_living_hats, hats.real_wage_hats):
         np.testing.assert_allclose(values, 1, rtol=0, atol=1e-13)
     np.testing.assert_allclose(hats.shares, e0.shares, rtol=0, atol=1e-14)
 
@@ -101,12 +101,12 @@ def test_baseline_must_be_valid_and_converged(solutions):
     e0 = solutions[0]
     for bad in (
         replace(e0, diagnostics=replace(e0.diagnostics, converged=False)),
-        replace(e0, shares=np.full((3, 3), np.nan)),
-        replace(e0, shares=e0.shares.T),
+        replace(e0, shares=np.full((3, 3, 2), np.nan)),
+        replace(e0, shares=np.swapaxes(e0.shares, 0, 1)),
         replace(e0, incomes=e0.incomes * [1, 2, 1]),
     ):
         with pytest.raises(ValueError):
-            solve_exact_hat(bad, np.ones((3, 3)))
+            solve_exact_hat(bad, np.ones((3, 3, 2)))
 
 
 def test_hat_does_not_call_levels_solver(solutions, monkeypatch):
@@ -130,7 +130,7 @@ def test_error_rules_are_separate_and_strict():
 def test_numeraire_residual_cannot_be_hidden():
     # Non-numeraire residual is < .01, but country's 0 residual is .1.
     def evaluate(log_wages):
-        return np.ones(2), np.ones(2), np.array([[.99, .01], [.0011, .9989]]), np.array([1., 100.])
+        return EconomicState(np.ones(2), np.ones((2,1)), np.array([[.99, .01], [.0011, .9989]])[:,:,None], np.array([1., 100.]), np.ones(2), np.array([[1.], [100.]]))
     _, residual, diagnostics = iterate_wages(evaluate, 2, tol=.01, max_iter=1)
     assert abs(residual[1]) < .01 < abs(residual[0])
     assert not diagnostics.converged
@@ -142,7 +142,7 @@ def test_numeraire_residual_cannot_be_hidden():
 @pytest.mark.parametrize("bad_value", [np.nan, np.inf, 0., -1.])
 def test_nonfinite_or_nonpositive_numerical_states(module, bad_value, monkeypatch, solutions):
     def bad_objects(*args):
-        return np.ones(3), np.full(3, bad_value), np.ones((3, 3)) / 3, np.ones(3)
+        return EconomicState(np.ones(3), np.full((3,2), bad_value), np.ones((3,3,2))/3, np.ones(3), np.full(3,bad_value), np.ones((3,2))/2)
     symbol = "levels_objects" if module is full_solution else "hat_objects"
     monkeypatch.setattr(module, symbol, bad_objects)
     if module is full_solution:
@@ -204,9 +204,9 @@ def test_iteration_limit_returns_last_evaluated_state(route, solutions):
     expected = (full_solution.levels_objects(p, np.log(wages)) if route == "levels"
                 else exact_hat.hat_objects(solutions[0], shock, np.log(wages)))
     # log(exp(x)) has a floating-point round trip; stale objects differ materially.
-    np.testing.assert_allclose(eq.shares, expected[2], rtol=1e-14, atol=0)
-    np.testing.assert_allclose(eq.incomes, expected[3], rtol=1e-14, atol=0)
-    np.testing.assert_allclose(eq.residual, market_clearing(expected[2], expected[3]), rtol=0, atol=1e-14)
+    np.testing.assert_allclose(eq.shares, expected.shares, rtol=1e-14, atol=0)
+    np.testing.assert_allclose(eq.incomes, expected.incomes, rtol=1e-14, atol=0)
+    np.testing.assert_allclose(eq.residual, market_clearing(expected.shares, expected.incomes, expected.expenditures), rtol=0, atol=1e-14)
 
 
 def test_tiny_wage_step_is_not_convergence():

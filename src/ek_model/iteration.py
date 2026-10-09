@@ -5,12 +5,13 @@ only follows the sales/income wage rule and checks every country's residual.
 """
 
 from numbers import Integral
+from dataclasses import astuple
 
 import numpy as np
 
 from .model import (
     DEFAULT_DAMPING, ITERATION_TOL, MAX_ITER, Diagnostics, IterationRecord,
-    market_clearing, normalized_wages,
+    EconomicState, exporter_sales, market_clearing, normalized_wages,
 )
 
 
@@ -22,7 +23,7 @@ def validate_controls(damping, max_iter, tol):
         scalar = np.asarray(value, dtype=float)
         if scalar.ndim != 0 or not np.isfinite(scalar) or scalar <= 0:
             raise ValueError(f"{name} must be a finite positive scalar")
-    if damping > 1:
+    if float(damping) > 1:
         raise ValueError("damping must be <= 1")
     if isinstance(max_iter, (bool, np.bool_)) or not isinstance(max_iter, Integral) or max_iter <= 0:
         raise ValueError("max_iter must be a positive integer")
@@ -35,14 +36,14 @@ def damped_wage_step(log_wages, sales_income_ratio, damping):
     return log_w_next
 
 
-def iterate_wages(evaluate, n, *, damping=DEFAULT_DAMPING, max_iter=MAX_ITER,
+def iterate_wages(evaluate, n, *, industries=1, damping=DEFAULT_DAMPING, max_iter=MAX_ITER,
                   tol=ITERATION_TOL):
     """Evaluate → test the full residual → update all wages → normalize → repeat.
 
-evaluate(log_wages) returns wages (or hats), prices (or hats), share levels,
-and income levels. There are max_iter updates and at most max_iter+1
-evaluations. Failed evaluated states remain in history for diagnosis.
-"""
+    evaluate(log_wages) returns an EconomicState, including industry spending
+    and aggregate cost of living. There are at most max_iter updates and
+    max_iter+1 evaluations. Failed states remain in history for diagnosis.
+    """
     validate_controls(damping, max_iter, tol)
     damping, tol, max_iter = float(damping), float(tol), int(max_iter)
     log_wages = np.zeros(n)
@@ -52,16 +53,17 @@ evaluations. Failed evaluated states remain in history for diagnosis.
             try:
                 objects = evaluate(log_wages)
             except (FloatingPointError, OverflowError):
-                objects = (normalized_wages(log_wages), np.full(n, np.nan),
-                           np.full((n, n), np.nan), np.full(n, np.nan))
-            wages, prices, shares, incomes = objects
-            sales = shares.T @ incomes
+                objects = EconomicState(normalized_wages(log_wages), np.full((n, industries), np.nan),
+                                        np.full((n, n, industries), np.nan), np.full(n, np.nan),
+                                        np.full(n, np.nan), np.full((n, industries), np.nan))
+            wages, incomes = objects.wages, objects.incomes
+            sales = exporter_sales(objects.shares, objects.expenditures)
             q = sales / incomes
-            residual = market_clearing(shares, incomes)
-            real_wages = wages / prices
+            residual = market_clearing(objects.shares, incomes, objects.expenditures)
+            real_wages = objects.real_wages
         finite_positive = all(
             np.all(np.isfinite(values)) and np.all(values > 0)
-            for values in (*objects, q, real_wages)
+            for values in (*astuple(objects), q, real_wages)
         ) and np.all(np.isfinite(residual))
         norm = float(np.max(np.abs(residual))) if finite_positive else float("inf")
         history.append(IterationRecord(
