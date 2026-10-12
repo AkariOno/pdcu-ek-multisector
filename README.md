@@ -6,13 +6,13 @@ This repository is an educational tutorial on how to run a PDCU cycle with a cod
 
 The tutorial begins from the accepted, tested one-industry Eaton-Kortum baseline, merged into `main` through [PR #2](https://github.com/AkariOno/pdcu-ek-multisector/pull/2). Human review and the learner explanation and understanding quiz have been completed. The baseline includes its numerical verification and Understand artifacts.
 
-This feature branch implements the multi-industry candidate approved in [Issue #5](https://github.com/AkariOno/pdcu-ek-multisector/issues/5). The accepted starting state is `main` at [PR #4's reconciliation commit](https://github.com/AkariOno/pdcu-ek-multisector/commit/9eb5b52bcefc6a5e4055acc5dfb2a6f6a184596b). Automated checks pass; multi-industry human review and learner understanding remain pending. The candidate has not been accepted or merged.
+The multi-industry Eaton–Kortum model has been accepted and merged into `main` through [PR #6](https://github.com/AkariOno/pdcu-ek-multisector/pull/6), at [commit 3d1cd49](https://github.com/AkariOno/pdcu-ek-multisector/commit/3d1cd49fa09a5735d71095c09ed278b711e8fb10). Automated checks, human review, and the learner explanation and understanding quiz are complete. [Issue #5](https://github.com/AkariOno/pdcu-ek-multisector/issues/5) is closed as completed.
 
-Start with the [candidate specification and acceptance status](docs/latest.md), [validation record](docs/validation.md), and [offline code viewer](viewer/model_viewer.html). Download or open the HTML locally to use the interactions; GitHub's source view does not execute it. The accepted one-industry state remains available through Git history.
+Start with the [accepted multi-industry specification](docs/latest.md), [automated validation record](docs/validation.md), and [offline code viewer](viewer/model_viewer.html). Download or open the HTML locally to use the interactions; GitHub's source view does not execute it. The earlier accepted one-industry state remains available through Git history.
 
 Both levels and independent exact hats retain the accepted NumPy-only loop: multiply each wage by `(sales/income)**0.2`, normalize country 0, and recompute until every country's residual meets the target. Exporter sales now sum final expenditure across importers and industries. Normalized Cobb–Douglas utility gives `C[n] = product_j P[n,j]**alpha[n,j]` and real wages `w/C`. The viewer exposes the actual loop, aggregation, and each solve's residual and wage history.
 
-### Run the candidate
+### Run the model
 
 With Python 3.12 in an activated virtual environment:
 
@@ -25,7 +25,7 @@ python scripts/build_model_viewer.py --check
 
 Regenerate the viewer with `python scripts/build_model_viewer.py`. Its [certificate](viewer/verification.json) records actual diagnostics, five comparisons, and J=1 regression evidence; the [manifest](viewer/manifest.json) binds generated artifacts and the frozen baseline reference to production source. See [reproduction details](docs/latest.md#reproduction-and-provenance).
 
-In the clean Python 3.12.14 / NumPy 2.5.3 environment, **109 tests pass**. E0, E1 and hats converge in 41, 41 and 38 updates, with full residual norms below `1e-13`. Every absolute and relative comparison error is below `1.91e-15`. All 18 J=1 comparisons match the immutable accepted baseline exactly in this environment. Windows/Linux CI runs the same numerical, failure-path, freshness and reproducibility checks; its actual run results are recorded in the linked draft PR.
+In the clean Python 3.12.14 / NumPy 2.5.3 environment, **109 tests pass**. E0, E1 and hats converge in 41, 41 and 38 updates, with full residual norms below `1e-13`. Every absolute and relative comparison error is below `1.91e-15`. All 18 J=1 comparisons match the immutable accepted baseline exactly in this environment. Windows/Linux CI runs the same numerical, failure-path, freshness and reproducibility checks; its actual run results are recorded in [merged PR #6](https://github.com/AkariOno/pdcu-ek-multisector/pull/6).
 
 The learner's task is one coherent extension:
 
@@ -43,12 +43,12 @@ The one-industry PDCU cycle is complete: implementation and numerical checks pas
 | Do | A full-solution solver and a separate exact-hat solver |
 | Check | A test comparing changes between two full-solution equilibria with the exact-hat result |
 | Understand | An interactive code viewer and a code-understanding quiz |
-| Latest State | The accepted revision of `docs/latest.md` describes the one-industry baseline merged into `main` |
+| Latest State | The historical PR #4 revision of `docs/latest.md` describes the accepted one-industry baseline |
 | Lab Journal | The baseline Issue and linked implementation Pull Request record the plan, checks, and review |
 
 The learner can inspect this completed baseline cycle before starting the extension, including its numerical evidence, completed human review, and understanding exercise.
 
-The following sections describe the multi-industry exercise implemented on this branch. The existing production modules are generalized in place, with explicit industry axes even for J=1; no parallel historical solver is retained. Only after human review, learner understanding and an authorized merge will the candidate become the accepted Latest State on `main`. Until then, `docs/latest.md` explicitly distinguishes this candidate from the accepted one-industry starting state.
+The following sections describe the completed multi-industry exercise. The existing production modules were generalized in place, with explicit industry axes even for J=1; no parallel historical solver is retained. Following completed human review, learner understanding and the authorized merge of PR #6, the multi-industry model is the accepted Latest State on `main`, documented in `docs/latest.md`.
 
 ## Learning Objectives
 
@@ -296,16 +296,16 @@ The filenames describe roles rather than historical versions. The earlier one-in
 | Research object | GitHub object |
 |---|---|
 | Completed one-industry baseline cycle | Completed Issues #1 and #3 and accepted, merged PR #2 |
-| Multi-industry Plan | Approved Issue #5, kept open |
-| Multi-industry Do | One feature branch or isolated worktree |
-| Multi-industry Check | The Pull Request and its exact-hat equivalence test |
-| Multi-industry Understand | Generated viewer and quiz; human explanation and quiz completion pending |
+| Multi-industry Plan | Approved Issue #5, closed as completed |
+| Multi-industry Do | Accepted and merged PR #6 |
+| Multi-industry Check | PR #6 and its passing exact-hat equivalence and J=1 regression tests |
+| Multi-industry Understand | Viewer and quiz; human review, learner explanation and quiz completed in PR #6 |
 | Latest State | Reviewed `main` branch and `docs/latest.md`, both rewritten by the accepted cycle |
 | Lab Journal | Issue and Pull Request history |
 
 ## Acceptance Criteria
 
-The multi-industry Pull Request is ready to merge when:
+The accepted multi-industry cycle satisfies these criteria:
 
 1. the model document and implementation use the same equations and index convention;
 2. the full-solution and exact-hat solvers converge under the test fixture;
@@ -315,7 +315,7 @@ The multi-industry Pull Request is ready to merge when:
 6. the quiz covers both implementation and economic interpretation; and
 7. the learner can summarize what changed from one industry to many;
 8. the production tree does not retain duplicate one-industry and multi-industry implementations; and
-9. `docs/latest.md` accurately describes the candidate and its evidence before merge, then records formal acceptance after authorization.
+9. `docs/latest.md` describes the accepted multi-industry model and its verification evidence.
 
 ## Deliberate Non-Goals
 
@@ -337,4 +337,4 @@ These are possible later PDCU exercises, but they are not prerequisites for trea
 
 ## Status
 
-The one-industry cycle was accepted and merged through PR #2, with its acceptance documentation reconciled by PR #4; Issues #1 and #3 are completed. This branch is the implemented and automatically verified **multi-industry candidate** for Issue #5. Both routes retain fixed damping `0.2`, at most 10,000 updates, country-0 normalization and strict full residual target `1e-13`. Acceptance still requires converged solvers, full residuals below `1e-11`, and separate absolute and relative errors strictly below `1e-9` for all five objects, plus frozen J=1 regression evidence. Human review and learner explanation/quiz remain unchecked. Issue #5 remains open and the implementation PR remains a draft.
+The one-industry cycle was accepted and merged through PR #2, with its acceptance documentation reconciled by PR #4; Issues #1 and #3 are completed. The **multi-industry model is accepted and merged into main through PR #6**, and Issue #5 is completed. Both routes retain fixed damping `0.2`, at most 10,000 updates, country-0 normalization and strict full residual target `1e-13`. Acceptance requires converged solvers, full residuals below `1e-11`, and separate absolute and relative errors strictly below `1e-9` for all five objects, plus frozen J=1 regression evidence. These checks, human review, and the learner explanation/quiz are complete.
