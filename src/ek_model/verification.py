@@ -1,6 +1,6 @@
 """The pre-specified acceptance rule, shared by tests and the viewer builder."""
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import platform
 
 import numpy as np
@@ -13,13 +13,15 @@ ERROR_TOL = 1e-9
 
 
 def fixture():
-    """Asymmetric three-country economy; a symmetric proportional bilateral cut."""
+    """Three countries, two industries; bilateral cost cut in industry 0 only."""
     baseline = Primitives(
-        T=[1.0, 1.3, 0.8], L=[1.0, 1.2, 0.9],
-        d=[[1.0, 1.4, 1.8], [1.3, 1.0, 1.6], [1.7, 1.5, 1.0]], theta=4.0,
+        T=[[1.0, 0.9], [1.3, 1.1], [0.8, 1.5]], L=[1.0, 1.2, 0.9],
+        d=np.stack(([[1.0, 1.4, 1.8], [1.3, 1.0, 1.6], [1.7, 1.5, 1.0]],
+                    [[1.0, 1.7, 1.4], [1.5, 1.0, 1.8], [1.6, 1.4, 1.0]]), axis=2),
+        theta=[4.0, 6.0], alpha=[[.60, .40], [.35, .65], [.50, .50]],
     )
-    d_hat = np.ones((3, 3))
-    d_hat[0, 1] = d_hat[1, 0] = 0.9
+    d_hat = np.ones((3, 3, 2))
+    d_hat[0, 1, 0] = d_hat[1, 0, 0] = 0.9
     return baseline, d_hat
 
 
@@ -72,11 +74,12 @@ def json_safe(value):
 
 
 def compare_equilibria(e0, e1, hats):
-    """Compare multiplicative changes, including all nine bilateral share ratios."""
+    """Compare multiplicative changes, including every bilateral industry share ratio."""
     with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
         pairs = {
             "wages": (e1.wages / e0.wages, hats.wage_hats),
             "prices": (e1.prices / e0.prices, hats.price_hats),
+            "cost_of_living": (e1.cost_of_living / e0.cost_of_living, hats.cost_of_living_hats),
             "shares": (e1.shares / e0.shares, hats.shares / e0.shares),
             "real_wages": (e1.real_wages / e0.real_wages, hats.real_wage_hats),
         }
@@ -93,14 +96,17 @@ def run_verification():
     """Always run the two levels solves and independent hat route afresh."""
     p, shock = fixture()
     certificate = {
-        "schema_version": 2,
+        "schema_version": 3,
         "environment": {"python": platform.python_version(), "numpy": np.__version__},
         "fixture": {"T": p.T.tolist(), "L": p.L.tolist(), "d": p.d.tolist(),
-                    "theta": p.theta, "gamma": p.gamma, "d_hat": shock.tolist()},
+                    "theta": p.theta.tolist(), "gamma": p.gamma.tolist(),
+                    "alpha": p.alpha.tolist(), "d_hat": shock.tolist()},
         "contract": {"error_tolerance": ERROR_TOL, "residual_tolerance": RESIDUAL_TOL,
                      "iteration_tolerance": ITERATION_TOL, "max_iter": MAX_ITER,
                      "damping": DEFAULT_DAMPING, "method": "fixed-damping multiplicative wage iteration",
                      "numeraire": "w[0] = w_hat[0] = 1",
+                     "utility": "U[n] = product_j (c[n,j]/alpha[n,j])**alpha[n,j]",
+                     "aggregate_price": "C[n] = product_j P[n,j]**alpha[n,j]",
                      "relative_denominator": "absolute levels-route ratio",
                      "residual": "max_i abs((sales[i]-income[i])/income[i])"},
         "passed": False, "comparisons": {}, "solvers": {}, "failure": None,
@@ -108,12 +114,16 @@ def run_verification():
     try:
         e0 = solve_levels(p)
         certificate["solvers"]["E0"] = diagnostics_record(e0)
-        e1 = solve_levels(Primitives(p.T, p.L, p.d * shock, p.theta, p.gamma))
+        e1 = solve_levels(replace(p, d=p.d * shock))
         certificate["solvers"]["E1"] = diagnostics_record(e1)
         hats = solve_exact_hat(e0, shock)
         certificate.update(compare_equilibria(e0, e1, hats))
+        from .regression import run_j1_regression
+        certificate["j1_regression"] = run_j1_regression()
+        certificate["passed"] = certificate["passed"] and certificate["j1_regression"]["passed"]
         if not certificate["passed"]:
             certificate["failure"] = "Convergence or strict equivalence criteria failed."
     except (ValueError, RuntimeError, FloatingPointError, OverflowError) as exc:
+        certificate["passed"] = False
         certificate["failure"] = f"{type(exc).__name__}: {exc}"
     return certificate

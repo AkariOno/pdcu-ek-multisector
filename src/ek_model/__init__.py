@@ -1,4 +1,4 @@
-"""One-industry Eaton–Kortum equilibrium and exact-hat counterfactuals."""
+"""Multi-industry Eaton–Kortum equilibrium and exact-hat counterfactuals."""
 
 from .exact_hat import solve_exact_hat
 from .full_solution import solve_levels

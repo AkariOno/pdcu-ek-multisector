@@ -6,11 +6,13 @@ This repository is an educational tutorial on how to run a PDCU cycle with a cod
 
 The tutorial begins from the accepted, tested one-industry Eaton-Kortum baseline, merged into `main` through [PR #2](https://github.com/AkariOno/pdcu-ek-multisector/pull/2). Human review and the learner explanation and understanding quiz have been completed. The baseline includes its numerical verification and Understand artifacts.
 
-Start with the [current one-industry specification](docs/latest.md), [baseline plan and issue](https://github.com/AkariOno/pdcu-ek-multisector/issues/1), and [offline code viewer](viewer/model_viewer.html). Download or open the HTML locally to use the interactions; GitHub's source view does not execute it.
+This feature branch implements the multi-industry candidate approved in [Issue #5](https://github.com/AkariOno/pdcu-ek-multisector/issues/5). The accepted starting state is `main` at [PR #4's reconciliation commit](https://github.com/AkariOno/pdcu-ek-multisector/commit/9eb5b52bcefc6a5e4055acc5dfb2a6f6a184596b). Automated checks pass; multi-industry human review and learner understanding remain pending. The candidate has not been accepted or merged.
 
-The current solver follows [the damped wage iteration plan, issue #3](https://github.com/AkariOno/pdcu-ek-multisector/issues/3). Both levels and exact hats use a transparent NumPy-only loop: multiply each wage by `(sales/income)**0.2`, normalize country 0, and recompute until every market residual meets the target. The viewer exposes the actual loop and each solve's residual and wage history.
+Start with the [candidate specification and acceptance status](docs/latest.md), [validation record](docs/validation.md), and [offline code viewer](viewer/model_viewer.html). Download or open the HTML locally to use the interactions; GitHub's source view does not execute it. The accepted one-industry state remains available through Git history.
 
-### Run the baseline
+Both levels and independent exact hats retain the accepted NumPy-only loop: multiply each wage by `(sales/income)**0.2`, normalize country 0, and recompute until every country's residual meets the target. Exporter sales now sum final expenditure across importers and industries. Normalized Cobb–Douglas utility gives `C[n] = product_j P[n,j]**alpha[n,j]` and real wages `w/C`. The viewer exposes the actual loop, aggregation, and each solve's residual and wage history.
+
+### Run the candidate
 
 With Python 3.12 in an activated virtual environment:
 
@@ -21,7 +23,9 @@ python -m pytest -q
 python scripts/build_model_viewer.py --check
 ```
 
-Regenerate the viewer with `python scripts/build_model_viewer.py`. Its [certificate](viewer/verification.json) records the actual convergence diagnostics and comparison errors; the [manifest](viewer/manifest.json) binds generated artifacts to their production source. See [reproduction details](docs/latest.md#reproduction-and-provenance).
+Regenerate the viewer with `python scripts/build_model_viewer.py`. Its [certificate](viewer/verification.json) records actual diagnostics, five comparisons, and J=1 regression evidence; the [manifest](viewer/manifest.json) binds generated artifacts and the frozen baseline reference to production source. See [reproduction details](docs/latest.md#reproduction-and-provenance).
+
+In the clean Python 3.12.14 / NumPy 2.5.3 environment, **109 tests pass**. E0, E1 and hats converge in 41, 41 and 38 updates, with full residual norms below `1e-13`. Every absolute and relative comparison error is below `1.91e-15`. All 18 J=1 comparisons match the immutable accepted baseline exactly in this environment. Windows/Linux CI runs the same numerical, failure-path, freshness and reproducibility checks; its actual run results are recorded in the linked draft PR.
 
 The learner's task is one coherent extension:
 
@@ -39,12 +43,12 @@ The one-industry PDCU cycle is complete: implementation and numerical checks pas
 | Do | A full-solution solver and a separate exact-hat solver |
 | Check | A test comparing changes between two full-solution equilibria with the exact-hat result |
 | Understand | An interactive code viewer and a code-understanding quiz |
-| Latest State | `docs/latest.md` describes the accepted one-industry baseline merged into `main` |
+| Latest State | The accepted revision of `docs/latest.md` describes the one-industry baseline merged into `main` |
 | Lab Journal | The baseline Issue and linked implementation Pull Request record the plan, checks, and review |
 
 The learner can inspect this completed baseline cycle before starting the extension, including its numerical evidence, completed human review, and understanding exercise.
 
-The following sections specify the later multi-industry exercise; the production code currently implements one industry only. During that later cycle, the existing model is generalized in place. After its Pull Request is accepted and merged, `main` contains the multi-industry model and `docs/latest.md` describes only that current model. The former one-industry state remains available through commit, Issue, and Pull Request history.
+The following sections describe the multi-industry exercise implemented on this branch. The existing production modules are generalized in place, with explicit industry axes even for J=1; no parallel historical solver is retained. Only after human review, learner understanding and an authorized merge will the candidate become the accepted Latest State on `main`. Until then, `docs/latest.md` explicitly distinguishes this candidate from the accepted one-industry starting state.
 
 ## Learning Objectives
 
@@ -125,8 +129,8 @@ The learner should use the viewer, close it, explain the solution process in the
 
 Version 1 should remain small enough that the two solution routes are transparent.
 
-- Countries: $n,i \in \{1,\ldots,N\}$
-- Industries: $j \in \{1,\ldots,J\}$
+- Countries: zero-based importer $n$ and exporter $i$, $N\ge2$
+- Industries: zero-based $j$, $J\ge1$
 - One factor: labor
 - One wage per country
 - Industry-specific technology $T_i^j$
@@ -150,6 +154,16 @@ $$
 P_n^j = \gamma_j
 \left[\sum_i T_i^j (w_i d_{ni}^j)^{-\theta_j}\right]^{-1/\theta_j}.
 $$
+
+The approved normalized Cobb–Douglas utility and unit-expenditure index are
+
+$$
+U_n=\prod_j(c_n^j/\alpha_n^j)^{\alpha_n^j},
+\qquad C_n=\prod_j(P_n^j)^{\alpha_n^j},
+\qquad \text{real wage}_n=w_n/C_n.
+$$
+
+Labor is fully employed and mobile between domestic industries, but immobile internationally. Strictly positive expenditure shares sum to one by country. Balanced trade applies to aggregate country income. Fixed industry multipliers `gamma[j]` affect price levels and cancel from counterfactual ratios.
 
 Industry expenditure is
 
@@ -186,6 +200,8 @@ $$
 $$
 
 The full-solution and exact-hat implementations must use the same economic closure and numeraire. These model details support the PDCU exercise; mastering them is not the tutorial's primary learning objective.
+
+Fixed preferences imply $\widehat C_n=\prod_j(\widehat P_n^j)^{\alpha_n^j}$ and $\widehat{\text{real wage}}_n=\widehat w_n/\widehat C_n$. Counterfactual expenditure is $X_n^{j\prime}=\alpha_n^j Y_n^0\widehat w_n$, and aggregate sales clear that country income. [Issue #5](https://github.com/AkariOno/pdcu-ek-multisector/issues/5) is the definitive Plan, including the heterogeneous three-country/two-industry fixture and 10% bilateral cost cut in industry 0 only.
 
 ## The Code Viewer
 
@@ -280,10 +296,10 @@ The filenames describe roles rather than historical versions. The earlier one-in
 | Research object | GitHub object |
 |---|---|
 | Completed one-industry baseline cycle | Completed Issues #1 and #3 and accepted, merged PR #2 |
-| Multi-industry Plan | One new Issue |
+| Multi-industry Plan | Approved Issue #5, kept open |
 | Multi-industry Do | One feature branch or isolated worktree |
 | Multi-industry Check | The Pull Request and its exact-hat equivalence test |
-| Multi-industry Understand | Viewer, completed quiz, and explanation recorded in the Pull Request |
+| Multi-industry Understand | Generated viewer and quiz; human explanation and quiz completion pending |
 | Latest State | Reviewed `main` branch and `docs/latest.md`, both rewritten by the accepted cycle |
 | Lab Journal | Issue and Pull Request history |
 
@@ -299,7 +315,7 @@ The multi-industry Pull Request is ready to merge when:
 6. the quiz covers both implementation and economic interpretation; and
 7. the learner can summarize what changed from one industry to many;
 8. the production tree does not retain duplicate one-industry and multi-industry implementations; and
-9. `docs/latest.md` has been rewritten to describe the accepted multi-industry model.
+9. `docs/latest.md` accurately describes the candidate and its evidence before merge, then records formal acceptance after authorization.
 
 ## Deliberate Non-Goals
 
@@ -321,4 +337,4 @@ These are possible later PDCU exercises, but they are not prerequisites for trea
 
 ## Status
 
-The one-industry baseline uses Python and NumPy, three countries, and a symmetric proportional 10% bilateral trade-cost cut between countries 0 and 1. Both routes use fixed damped multiplicative wage iteration, default damping `0.2`, at most 10,000 updates, and a strict full residual target of `1e-13`. Country 0 is normalized after every update. Verification requires all three solves to converge, full residual norms below `1e-11`, and separate strict absolute and relative comparison errors below `1e-9`. Quiz answers are session-only. These choices and reproduction instructions are fixed in `docs/latest.md`. Human review and learner understanding are complete; the one-industry baseline has been accepted and merged into `main` in PR #2. Issues #1 and #3 are closed as completed. The later multi-industry cycle must specify its industry dimensions, demand shares, and shock before implementation; it has not started.
+The one-industry cycle was accepted and merged through PR #2, with its acceptance documentation reconciled by PR #4; Issues #1 and #3 are completed. This branch is the implemented and automatically verified **multi-industry candidate** for Issue #5. Both routes retain fixed damping `0.2`, at most 10,000 updates, country-0 normalization and strict full residual target `1e-13`. Acceptance still requires converged solvers, full residuals below `1e-11`, and separate absolute and relative errors strictly below `1e-9` for all five objects, plus frozen J=1 regression evidence. Human review and learner explanation/quiz remain unchecked. Issue #5 remains open and the implementation PR remains a draft.

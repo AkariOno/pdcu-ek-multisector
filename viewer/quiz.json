@@ -3,14 +3,14 @@
     "id": "indexing",
     "kind": "choice",
     "title": "01 · Read the indices",
-    "prompt": "In pi[n, i], what does each index identify?",
+    "prompt": "In pi[n,i,j], what does each index identify?",
     "options": [
-      "n is the importer; i is the exporter.",
-      "n is the exporter; i is the importer.",
-      "n is a country; i is an industry."
+      "n importer, i exporter, j industry.",
+      "n exporter, i importer, j industry.",
+      "n importer, i industry, j exporter."
     ],
     "answer": 0,
-    "explanation": "Each row is one importer's allocation of expenditure across exporters. Rows sum to one; there is no industry axis in this baseline."
+    "explanation": "Shares have shape (N,N,J). For each importer/industry, shares sum to one over exporters, axis 1."
   },
   {
     "id": "denominator",
@@ -19,23 +19,23 @@
     "prompt": "Select the block that computes the denominator of the trade-share equation in log space.",
     "options": [
       "log_denominator = row_logsumexp(log_weights)",
-      "sales = shares.T @ incomes",
+      "sales = exporter_sales(objects.shares, objects.expenditures)",
       "incomes = wages * primitives.L"
     ],
     "answer": 0,
-    "explanation": "row_logsumexp uses NumPy row-max shifting and sums over exporter columns within each importer row. Exponentiating log_denominator gives the trade-share denominator.",
+    "explanation": "row_logsumexp sums over exporters within each importer/industry. It returns (N,J) log denominators; broadcasting [:,None,:] normalizes the (N,N,J) weights.",
     "step": "levels-shares"
   },
   {
     "id": "closure",
     "kind": "written",
     "title": "03 · Close the economy",
-    "prompt": "Which equation determines relative wages? Explain the sales/income update, fixed damping, and country-0 normalization.",
-    "explanation": "Exporter sales equal labor income: sum_n pi[n,i] w[n]L[n] = w[i]L[i]. The iteration multiplies each wage by (sales/income)^alpha, then normalizes all wages by country 0. Before normalization, q>1 raises an exporter's wage and q<1 lowers it. alpha=0.2 applies a partial log adjustment. A numeraire removes nominal scale indeterminacy; convergence checks all N residuals.",
+    "prompt": "Explain country-level market clearing, the damped wage update, and how normalized Cobb–Douglas utility defines cost of living.",
+    "explanation": "Country sales sum pi[n,i,j]*alpha[n,j]*income[n] over importers and industries. They equal w[i]L[i]; individual industry trade need not balance. Damping multiplies wages by (sales/income)^0.2 before country-0 normalization. Utility product(c/alpha)^alpha has C=product P^alpha and real wage w/C; expenditure shares remain alpha.",
     "rubric": [
-      "Equates exporter sales and income; explains the q>1/q<1 wage direction before normalization.",
-      "Explains fixed damping as a fractional log adjustment.",
-      "Explains country-0 normalization and the all-country residual check."
+      "Equates aggregate exporter sales with country income; distinguishes industry trade from aggregate balance.",
+      "Explains q>1/q<1, fixed damping, normalization, and the full residual check.",
+      "Derives C=product P^alpha for normalized utility and unchanged spending shares."
     ]
   },
   {
@@ -49,7 +49,7 @@
       "Trade shares scale by the same factor."
     ],
     "answer": 0,
-    "explanation": "The price index is homogeneous of degree one in wages. Common nominal scaling cancels from expenditure shares and w/P. Both verification routes must use the same wage normalization."
+    "explanation": "Industry prices and aggregate cost of living are homogeneous of degree one in wages. Common nominal scaling cancels from trade shares and w/C. Both verification routes must use the same wage normalization."
   },
   {
     "id": "inputs",
@@ -57,23 +57,23 @@
     "title": "05 · Supply exact hats",
     "prompt": "Which information enters the exact-hat equilibrium equations for this trade-cost shock?",
     "options": [
-      "Baseline shares and incomes, theta, and trade-cost hats.",
+      "Baseline industry shares and country incomes, theta[j], alpha[n,j], and trade-cost hats.",
       "Only the new trade costs and gamma.",
       "Counterfactual wages from the levels solver."
     ],
     "answer": 0,
-    "explanation": "Baseline shares summarize technology and delivered-cost competitiveness. Baseline incomes supply spending weights. The equations do not need the counterfactual levels solution. The API also retains primitives to validate shocked iceberg costs."
+    "explanation": "Hats reweight baseline shares by wage and trade-cost ratios using industry elasticities. Fixed preferences allocate country spending and aggregate industry price hats. Gamma cancels; the shocked costs are validated using retained primitives."
   },
   {
     "id": "routes",
     "kind": "written",
     "title": "06 · Explain two routes",
-    "prompt": "Why should E1/E0 equal the exact-hat result, and what would agreement alone fail to prove?",
-    "explanation": "Divide the counterfactual equations by their baseline counterparts with technology, labor, theta, and gamma fixed. Baseline shares then replace levels competitiveness terms. Identical closure, shock, and numeraire give the same equilibrium changes. Agreement alone does not prove convergence or rule out a shared implementation error.",
+    "prompt": "Why should E1/E0 equal exact hats? How does the J=1 regression add evidence, and what does agreement fail to prove?",
+    "explanation": "Identical primitives except for the shock, fixed preferences, closure and numeraire imply identical ratios. J=1 with alpha=1 compares the generalized code against frozen outputs from accepted PR #4, including C=P. Agreement still requires converged full residuals and does not establish human understanding.",
     "rubric": [
-      "Describes dividing counterfactual by baseline equations.",
-      "Identifies common closure, shock, and numeraire.",
-      "Distinguishes equivalence from convergence and independent equation checks."
+      "Explains the same shock, fixed preferences, closure and numeraire across routes.",
+      "Explains J=1, alpha=1, C=P and the immutable accepted reference.",
+      "Separates numerical consistency from convergence, specification review and learner understanding."
     ]
   },
   {
@@ -93,12 +93,12 @@
     "id": "interpretation",
     "kind": "written",
     "title": "08 · Interpret the shock",
-    "prompt": "Trace the 10% bilateral trade-cost cut through shares, wages, prices, and real income. Why can country 2 also change?",
-    "explanation": "Lower bilateral delivered costs initially increase the affected exporters' competitiveness. Expenditure shifts change sales and relative wages; those wage changes feed back into every importer's prices and shares. Welfare is the wage change divided by the price change. Country 2 participates in the same market-clearing system, so its outcomes can change even though its trade costs do not. Direction and magnitude should be read from the equilibrium, not assumed for every country.",
+    "prompt": "Industry 0's bilateral costs fall 10%, while industry 1's costs stay fixed. Trace the effect on wages, both industries, aggregate prices and country 2's welfare.",
+    "explanation": "Direct competitiveness changes in industry 0 alter demand and country incomes. Shared wages feed into both industries, so industry 1's shares and prices can respond without its own cost shock. C=product P^alpha weights those prices; welfare is w/C. Country 2 responds through world demand and wage adjustments.",
     "rubric": [
-      "Connects costs to expenditure shares and exporter sales.",
-      "Explains wage feedback and effects on the third country.",
-      "Defines the real-income change as wage hat divided by price hat."
+      "Identifies the direct industry-0 competitiveness effect and shared-wage spillovers.",
+      "Explains fixed alpha, aggregate price changes, and welfare w/C.",
+      "Explains why country 2 and the unshocked industry can respond."
     ]
   }
 ]
